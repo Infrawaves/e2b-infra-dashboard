@@ -1,0 +1,149 @@
+# Buildkite CI for e2b-infra-dashboard
+# Mirrors .github/workflows/{code-quality,test}.yml, plus a build and an
+# (optional) Playwright E2E step.
+#
+# Single source of truth for the Bun image tag and the install-cache mount
+# lives in the YAML anchors below — change them in one place.
+
+env:
+  FORCE_COLOR: "1"
+  CLICOLOR_FORCE: "1"
+
+# ---- shared anchors (edit here only) ----------------------------------------
+# Bun image tag: bump this one line to change the Bun version everywhere.
+_bun_image: &bun_image "oven/bun:1.2.20"
+# Persisted Bun install cache on the agent host (equivalent to actions/cache).
+# Pre-create on the agent: mkdir -p /var/cache/buildkite-bun && chown buildkite-agent ...
+_bun_cache: &bun_cache "/var/cache/buildkite-bun:/root/.bun/install/cache"
+
+# Reusable docker-plugin block for the plain (no-extra-env) steps.
+_docker: &docker
+  plugins:
+    - docker#v5.11.0:
+        image: *bun_image
+        volumes:
+          - *bun_cache
+        workdir: /workdir
+        mount-checkout: true
+        propagate-environment: true
+        environment:
+          - "FORCE_COLOR"
+          - "CLICOLOR_FORCE"
+
+steps:
+  - group: ":lint-roller: Code Quality"
+    key: quality
+    steps:
+      - label: ":biome: Lint"
+        key: lint
+        command:
+          - "bun install --frozen-lockfile"
+          - "bunx biome ci --formatter-enabled=false --linter-enabled=true --reporter=github ."
+        <<: *docker
+
+      - label: ":scissors: Knip"
+        key: knip
+        command:
+          - "bun install --frozen-lockfile"
+          - "bun run knip:ci"
+        <<: *docker
+
+  - group: ":vitest: Tests"
+    key: tests
+    steps:
+      - label: ":microscope: Unit Tests"
+        key: unit
+        command:
+          - "bun install --frozen-lockfile"
+          - "bun run test:unit"
+        <<: *docker
+
+      - label: ":link: Integration Tests"
+        key: integration
+        depends_on: unit
+        env: &test_env
+          E2B_SESSION_SECRET: test-session-secret
+          ORY_SDK_URL: https://test-ory.projects.oryapis.com
+          ORY_OAUTH2_CLIENT_ID: test-ory-client-id
+          ORY_OAUTH2_CLIENT_SECRET: test-ory-client-secret
+          ORY_OAUTH2_CLI_CLIENT_ID: test-ory-cli-client-id
+          ORY_OAUTH2_AUDIENCE: https://api.e2b-test.dev
+          ORY_PROJECT_API_TOKEN: test-ory-project-api-token
+          DASHBOARD_API_ADMIN_TOKEN: test-dashboard-admin-token
+          BILLING_API_URL: https://billing.e2b-test.dev
+          NEXT_PUBLIC_E2B_DOMAIN: e2b-test.dev
+          NEXT_PUBLIC_POSTHOG_KEY: test-posthog-key
+          NEXT_PUBLIC_STRIPE_BILLING_URL: https://test-stripe-billing.example.com
+          NEXT_PUBLIC_SCAN: "0"
+          NEXT_PUBLIC_MOCK_DATA: "1"
+        command:
+          - "bun install --frozen-lockfile"
+          - "bun run test:integration"
+        plugins:
+          - docker#v5.11.0:
+              image: *bun_image
+              volumes:
+                - *bun_cache
+              workdir: /workdir
+              mount-checkout: true
+              propagate-environment: true
+
+  - label: ":nextjs: Build"
+    key: build
+    depends_on:
+      - lint
+      - unit
+    # next build runs prebuild (scripts:check-app-env) → needs the app env schema.
+    env: *test_env
+    command:
+      - "bun install --frozen-lockfile"
+      - "bun run build"
+    plugins:
+      - docker#v5.11.0:
+          image: *bun_image
+          volumes:
+            - *bun_cache
+          workdir: /workdir
+          mount-checkout: true
+          propagate-environment: true
+
+  # -- Playwright E2E ---------------------------------------------------------
+  # NOTE: e2e:test:pr targets a DEPLOYED preview (playwright.config.ts has no
+  # webServer) and check-playwright-env requires real values:
+  #   PLAYWRIGHT_BASE_URL, TEST_USER_EMAIL, TEST_USER_PASSWORD
+  #   (+ VERCEL_AUTOMATION_BYPASS_SECRET for protected previews)
+  # Provide those via agent secrets / env hook — do NOT commit them.
+  # soft_fail keeps the build green until secrets are wired; the guard skips
+  # cleanly on branches where playwright.config.ts is absent (e.g. today's main).
+  - label: ":playwright: E2E (pr)"
+    key: e2e
+    depends_on:
+      - build
+    soft_fail: true
+    env:
+      PLAYWRIGHT_MODE: pr
+    command:
+      - |
+        if [ ! -f playwright.config.ts ]; then
+          echo '+++ playwright.config.ts not present on this branch — skipping E2E'
+          exit 0
+        fi
+      - "bun install --frozen-lockfile"
+      - "bunx playwright install chromium --with-deps"
+      - "bun run e2e:test:pr"
+    plugins:
+      - docker#v5.11.0:
+          image: *bun_image
+          volumes:
+            - *bun_cache
+          workdir: /workdir
+          mount-checkout: true
+          propagate-environment: true
+          environment:
+            - "FORCE_COLOR"
+            - "CLICOLOR_FORCE"
+            - "PLAYWRIGHT_MODE"
+            - "PLAYWRIGHT_BASE_URL"
+            - "TEST_USER_EMAIL"
+            - "TEST_USER_PASSWORD"
+            - "VERCEL_AUTOMATION_BYPASS_SECRET"
