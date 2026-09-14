@@ -1146,9 +1146,142 @@ components:
         slug:
           type: string
 
+    SuperAdminTemplate:
+      description: A team template with its owning team's attribution, for the cross-team super-admin view.
+      allOf:
+        - $ref: "#/components/schemas/TeamTemplate"
+        - type: object
+          required:
+            - teamID
+            - teamName
+          properties:
+            teamID:
+              type: string
+              format: uuid
+            teamName:
+              type: string
+
+    SuperAdminTemplatesResponse:
+      type: object
+      required:
+        - data
+        - nextCursor
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/SuperAdminTemplate"
+        nextCursor:
+          type: string
+          nullable: true
+          description: Cursor to pass to the next list request, or `null` if there is no next page.
+
+    SuperAdminBuild:
+      description: A build with its owning team's attribution, for the cross-team super-admin view.
+      allOf:
+        - $ref: "#/components/schemas/ListedBuild"
+        - type: object
+          required:
+            - teamID
+            - teamName
+          properties:
+            teamID:
+              type: string
+              format: uuid
+            teamName:
+              type: string
+
+    SuperAdminBuildsResponse:
+      type: object
+      required:
+        - data
+        - nextCursor
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/SuperAdminBuild"
+        nextCursor:
+          type: string
+          nullable: true
+          description: Cursor to pass to the next list request, or `null` if there is no next page.
+
+    SuperAdminTeam:
+      type: object
+      description: A team as seen in the cross-team super-admin view, not scoped to any user's membership.
+      required:
+        - id
+        - name
+        - slug
+        - tier
+        - email
+        - profilePictureUrl
+        - isBlocked
+        - isBanned
+        - blockedReason
+        - limits
+        - createdAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        slug:
+          type: string
+        tier:
+          type: string
+        email:
+          type: string
+        profilePictureUrl:
+          type: string
+          nullable: true
+        isBlocked:
+          type: boolean
+        isBanned:
+          type: boolean
+        blockedReason:
+          type: string
+          nullable: true
+        limits:
+          $ref: "#/components/schemas/UserTeamLimits"
+        createdAt:
+          type: string
+          format: date-time
+
+    SuperAdminTeamsResponse:
+      type: object
+      required:
+        - data
+        - nextCursor
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/SuperAdminTeam"
+        nextCursor:
+          type: string
+          nullable: true
+          description: Cursor to pass to the next list request, or `null` if there is no next page.
+
+    SuperAdminMe:
+      type: object
+      description: The signed-in user's platform role, for gating admin surfaces in the dashboard.
+      required:
+        - platformRole
+      properties:
+        platformRole:
+          type: string
+          nullable: true
+          enum:
+            - platform_admin
+            - super_admin
+          description: The caller's platform role, or `null` when the caller has no platform role.
+
 tags:
   - name: builds
   - name: sandboxes
+  - name: super-admin
   - name: teams
   - name: templates
 
@@ -1782,5 +1915,104 @@ paths:
           $ref: "#/components/responses/403"
         "404":
           $ref: "#/components/responses/404"
+        "500":
+          $ref: "#/components/responses/500"
+
+  /super-admin/me:
+    get:
+      summary: Get the signed-in user's platform role
+      description: Returns the caller's platform role, or `null` when they have none. Any signed-in user may call this; it lets the dashboard decide whether to show admin surfaces without exposing a 403.
+      tags: [super-admin]
+      security:
+        - AuthProviderBearerAuth: []
+      responses:
+        "200":
+          description: Successfully returned the caller's platform role.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuperAdminMe"
+        "401":
+          $ref: "#/components/responses/401"
+        "500":
+          $ref: "#/components/responses/500"
+
+  /super-admin/templates:
+    get:
+      summary: List all templates across teams
+      description: Returns a paginated list of every team-owned template across all teams, each with its owning team's id and name. Requires a signed-in user with a platform role. Keyset cursor pagination ordered by creation time (newest first).
+      tags: [super-admin]
+      security:
+        - AuthProviderBearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/templates_search"
+        - $ref: "#/components/parameters/templates_limit"
+        - $ref: "#/components/parameters/templates_cursor"
+      responses:
+        "200":
+          description: Successfully returned paginated templates.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuperAdminTemplatesResponse"
+        "400":
+          $ref: "#/components/responses/400"
+        "401":
+          $ref: "#/components/responses/401"
+        "403":
+          $ref: "#/components/responses/403"
+        "500":
+          $ref: "#/components/responses/500"
+
+  /super-admin/builds:
+    get:
+      summary: List all builds across teams
+      description: Returns a paginated list of builds across all teams, each with its owning team's id and name. Requires a signed-in user with a platform role. Keyset cursor pagination ordered by creation time (newest first).
+      tags: [super-admin]
+      security:
+        - AuthProviderBearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/builds_limit"
+        - $ref: "#/components/parameters/builds_cursor"
+        - $ref: "#/components/parameters/build_statuses"
+      responses:
+        "200":
+          description: Successfully returned paginated builds.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuperAdminBuildsResponse"
+        "400":
+          $ref: "#/components/responses/400"
+        "401":
+          $ref: "#/components/responses/401"
+        "403":
+          $ref: "#/components/responses/403"
+        "500":
+          $ref: "#/components/responses/500"
+
+  /super-admin/teams:
+    get:
+      summary: List all teams across the platform
+      description: Returns a paginated list of every team on the platform with its limits, not scoped to any user's membership. Requires a signed-in user with a platform role. Keyset cursor pagination ordered by creation time (newest first).
+      tags: [super-admin]
+      security:
+        - AuthProviderBearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/builds_limit"
+        - $ref: "#/components/parameters/builds_cursor"
+      responses:
+        "200":
+          description: Successfully returned paginated teams.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuperAdminTeamsResponse"
+        "400":
+          $ref: "#/components/responses/400"
+        "401":
+          $ref: "#/components/responses/401"
+        "403":
+          $ref: "#/components/responses/403"
         "500":
           $ref: "#/components/responses/500"

@@ -2441,6 +2441,48 @@ export interface paths {
     patch?: never
     trace?: never
   }
+  '/super-admin/sandboxes': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /**
+     * List all running sandboxes across teams
+     * @description Returns every running sandbox across all teams, each with its owning team's id. Requires a signed-in user with a platform role.
+     */
+    get: {
+      parameters: {
+        query?: never
+        header?: never
+        path?: never
+        cookie?: never
+      }
+      requestBody?: never
+      responses: {
+        /** @description Successfully returned all running sandboxes. */
+        200: {
+          headers: {
+            [name: string]: unknown
+          }
+          content: {
+            'application/json': components['schemas']['SuperAdminSandbox'][]
+          }
+        }
+        401: components['responses']['401']
+        403: components['responses']['403']
+        500: components['responses']['500']
+      }
+    }
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
 }
 export type webhooks = Record<string, never>
 export interface components {
@@ -3559,6 +3601,14 @@ export interface components {
     NewVolume: {
       /** @description Name of the volume */
       name: string
+    }
+    /** @description A running sandbox with its owning team's id, for the cross-team super-admin view. */
+    SuperAdminSandbox: components['schemas']['ListedSandbox'] & {
+      /**
+       * Format: uuid
+       * @description Identifier of the team that owns the sandbox
+       */
+      teamID: string
     }
   }
   responses: {

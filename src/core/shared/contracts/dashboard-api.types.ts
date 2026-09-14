@@ -1106,6 +1106,195 @@ export interface paths {
     patch?: never
     trace?: never
   }
+  '/super-admin/me': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /**
+     * Get the signed-in user's platform role
+     * @description Returns the caller's platform role, or `null` when they have none. Any signed-in user may call this; it lets the dashboard decide whether to show admin surfaces without exposing a 403.
+     */
+    get: {
+      parameters: {
+        query?: never
+        header?: never
+        path?: never
+        cookie?: never
+      }
+      requestBody?: never
+      responses: {
+        /** @description Successfully returned the caller's platform role. */
+        200: {
+          headers: {
+            [name: string]: unknown
+          }
+          content: {
+            'application/json': components['schemas']['SuperAdminMe']
+          }
+        }
+        401: components['responses']['401']
+        500: components['responses']['500']
+      }
+    }
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/super-admin/templates': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /**
+     * List all templates across teams
+     * @description Returns a paginated list of every team-owned template across all teams, each with its owning team's id and name. Requires a signed-in user with a platform role. Keyset cursor pagination ordered by creation time (newest first).
+     */
+    get: {
+      parameters: {
+        query?: {
+          /** @description Case-insensitive substring match on template names, aliases, and template id. */
+          search?: components['parameters']['templates_search']
+          /** @description Maximum number of items to return per page. */
+          limit?: components['parameters']['templates_limit']
+          /** @description Cursor returned by the previous list response in `{sort}|{value}|{templateID}` format. Rejected if its sort does not match the request. */
+          cursor?: components['parameters']['templates_cursor']
+        }
+        header?: never
+        path?: never
+        cookie?: never
+      }
+      requestBody?: never
+      responses: {
+        /** @description Successfully returned paginated templates. */
+        200: {
+          headers: {
+            [name: string]: unknown
+          }
+          content: {
+            'application/json': components['schemas']['SuperAdminTemplatesResponse']
+          }
+        }
+        400: components['responses']['400']
+        401: components['responses']['401']
+        403: components['responses']['403']
+        500: components['responses']['500']
+      }
+    }
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/super-admin/builds': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /**
+     * List all builds across teams
+     * @description Returns a paginated list of builds across all teams, each with its owning team's id and name. Requires a signed-in user with a platform role. Keyset cursor pagination ordered by creation time (newest first).
+     */
+    get: {
+      parameters: {
+        query?: {
+          /** @description Maximum number of items to return per page. */
+          limit?: components['parameters']['builds_limit']
+          /** @description Cursor returned by the previous list response in `created_at|build_id` format. */
+          cursor?: components['parameters']['builds_cursor']
+          /** @description Comma-separated list of build statuses to include. */
+          statuses?: components['parameters']['build_statuses']
+        }
+        header?: never
+        path?: never
+        cookie?: never
+      }
+      requestBody?: never
+      responses: {
+        /** @description Successfully returned paginated builds. */
+        200: {
+          headers: {
+            [name: string]: unknown
+          }
+          content: {
+            'application/json': components['schemas']['SuperAdminBuildsResponse']
+          }
+        }
+        400: components['responses']['400']
+        401: components['responses']['401']
+        403: components['responses']['403']
+        500: components['responses']['500']
+      }
+    }
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/super-admin/teams': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /**
+     * List all teams across the platform
+     * @description Returns a paginated list of every team on the platform with its limits, not scoped to any user's membership. Requires a signed-in user with a platform role. Keyset cursor pagination ordered by creation time (newest first).
+     */
+    get: {
+      parameters: {
+        query?: {
+          /** @description Maximum number of items to return per page. */
+          limit?: components['parameters']['builds_limit']
+          /** @description Cursor returned by the previous list response in `created_at|build_id` format. */
+          cursor?: components['parameters']['builds_cursor']
+        }
+        header?: never
+        path?: never
+        cookie?: never
+      }
+      requestBody?: never
+      responses: {
+        /** @description Successfully returned paginated teams. */
+        200: {
+          headers: {
+            [name: string]: unknown
+          }
+          content: {
+            'application/json': components['schemas']['SuperAdminTeamsResponse']
+          }
+        }
+        400: components['responses']['400']
+        401: components['responses']['401']
+        403: components['responses']['403']
+        500: components['responses']['500']
+      }
+    }
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
 }
 export type webhooks = Record<string, never>
 export interface components {
@@ -1530,6 +1719,57 @@ export interface components {
       /** Format: uuid */
       id: string
       slug: string
+    }
+    /** @description A team template with its owning team's attribution, for the cross-team super-admin view. */
+    SuperAdminTemplate: components['schemas']['TeamTemplate'] & {
+      /** Format: uuid */
+      teamID: string
+      teamName: string
+    }
+    SuperAdminTemplatesResponse: {
+      data: components['schemas']['SuperAdminTemplate'][]
+      /** @description Cursor to pass to the next list request, or `null` if there is no next page. */
+      nextCursor: string | null
+    }
+    /** @description A build with its owning team's attribution, for the cross-team super-admin view. */
+    SuperAdminBuild: components['schemas']['ListedBuild'] & {
+      /** Format: uuid */
+      teamID: string
+      teamName: string
+    }
+    SuperAdminBuildsResponse: {
+      data: components['schemas']['SuperAdminBuild'][]
+      /** @description Cursor to pass to the next list request, or `null` if there is no next page. */
+      nextCursor: string | null
+    }
+    /** @description A team as seen in the cross-team super-admin view, not scoped to any user's membership. */
+    SuperAdminTeam: {
+      /** Format: uuid */
+      id: string
+      name: string
+      slug: string
+      tier: string
+      email: string
+      profilePictureUrl: string | null
+      isBlocked: boolean
+      isBanned: boolean
+      blockedReason: string | null
+      limits: components['schemas']['UserTeamLimits']
+      /** Format: date-time */
+      createdAt: string
+    }
+    SuperAdminTeamsResponse: {
+      data: components['schemas']['SuperAdminTeam'][]
+      /** @description Cursor to pass to the next list request, or `null` if there is no next page. */
+      nextCursor: string | null
+    }
+    /** @description The signed-in user's platform role, for gating admin surfaces in the dashboard. */
+    SuperAdminMe: {
+      /**
+       * @description The caller's platform role, or `null` when the caller has no platform role.
+       * @enum {string|null}
+       */
+      platformRole: 'platform_admin' | 'super_admin' | null
     }
   }
   responses: {
