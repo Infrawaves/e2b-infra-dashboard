@@ -3,6 +3,7 @@ import { billingRouter } from './billing'
 import { buildsRouter } from './builds'
 import { sandboxRouter } from './sandbox'
 import { sandboxesRouter } from './sandboxes'
+import { superAdminRouter } from './super-admin'
 import { supportRouter } from './support'
 import { teamsRouter } from './teams'
 import { templatesRouter } from './templates'
@@ -19,6 +20,7 @@ export const trpcAppRouter = createTRPCRouter({
   teams: teamsRouter,
   user: userRouter,
   webhooks: webhooksRouter,
+  superAdmin: superAdminRouter,
 })
 
 export type TRPCAppRouter = typeof trpcAppRouter

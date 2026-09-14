@@ -19,6 +19,12 @@ export const PROTECTED_URLS = {
   NEW_TEAM: '/dashboard/teams/new',
   TEAMS: '/dashboard/teams',
 
+  SUPER_ADMIN: '/dashboard/super-admin/sandboxes',
+  SUPER_ADMIN_SANDBOXES: '/dashboard/super-admin/sandboxes',
+  SUPER_ADMIN_TEMPLATES: '/dashboard/super-admin/templates',
+  SUPER_ADMIN_BUILDS: '/dashboard/super-admin/builds',
+  SUPER_ADMIN_TEAMS: '/dashboard/super-admin/teams',
+
   RESOLVED_ACCOUNT_SETTINGS: (teamSlug: string) =>
     `/dashboard/${teamSlug}/account`,
 

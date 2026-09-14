@@ -1,13 +1,17 @@
 'use client'
 
+import { useQuery } from '@tanstack/react-query'
 import micromatch from 'micromatch'
 import { usePathname } from 'next/navigation'
 import { useMemo } from 'react'
 import { SIDEBAR_MAIN_LINKS, type SidebarNavItem } from '@/configs/sidebar'
+import { PROTECTED_URLS } from '@/configs/urls'
 
 import { useIsMobile } from '@/lib/hooks/use-mobile'
 import { cn } from '@/lib/utils'
+import { useTRPC } from '@/trpc/client'
 import { HoverPrefetchLink } from '@/ui/hover-prefetch-link'
+import { EnterpriseIcon } from '@/ui/primitives/icons'
 import {
   SIDEBAR_TRANSITION_CLASSNAMES,
   SidebarContent,
@@ -42,6 +46,11 @@ export default function DashboardSidebarContent() {
   const pathname = usePathname()
   const isMobile = useIsMobile()
   const { setOpenMobile } = useSidebar()
+  const trpc = useTRPC()
+
+  // Non-suspense so the sidebar never blocks on it; non-admins get a null role.
+  const { data: me } = useQuery(trpc.superAdmin.getMe.queryOptions())
+  const isPlatformAdmin = Boolean(me?.platformRole)
 
   const groupedNavLinks = useMemo(
     () => createGroupedLinks(SIDEBAR_MAIN_LINKS),
@@ -100,6 +109,39 @@ export default function DashboardSidebarContent() {
           </SidebarMenu>
         </SidebarGroup>
       ))}
+      {isPlatformAdmin && (
+        <SidebarGroup>
+          <SidebarGroupLabel>Platform</SidebarGroupLabel>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                isActive={pathname?.startsWith('/dashboard/super-admin')}
+                asChild
+                tooltip="Super Admin"
+              >
+                <HoverPrefetchLink
+                  href={PROTECTED_URLS.SUPER_ADMIN}
+                  onClick={
+                    isMobile
+                      ? () => {
+                          setOpenMobile(false)
+                        }
+                      : undefined
+                  }
+                >
+                  <EnterpriseIcon
+                    className={cn(
+                      'transition-[size]',
+                      SIDEBAR_TRANSITION_CLASSNAMES
+                    )}
+                  />
+                  <span>Super Admin</span>
+                </HoverPrefetchLink>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarGroup>
+      )}
     </SidebarContent>
   )
 }
