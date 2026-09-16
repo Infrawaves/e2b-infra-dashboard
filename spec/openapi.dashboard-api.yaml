@@ -636,6 +636,66 @@ components:
         diskMb:
           type: integer
           format: int32
+        eventsTtlDays:
+          type: integer
+          format: int64
+        defaultFreeDiskSizeMb:
+          type: integer
+          format: int64
+        maxDiskSizeMb:
+          type: integer
+          format: int64
+
+    UpdateTeamLimitsRequest:
+      type: object
+      description: Absolute per-team quota overrides written to project_limits. Every field required.
+      required:
+        - maxLengthHours
+        - concurrentSandboxes
+        - concurrentTemplateBuilds
+        - maxVcpu
+        - maxRamMb
+        - diskMb
+        - eventsTtlDays
+        - defaultFreeDiskSizeMb
+        - maxDiskSizeMb
+      properties:
+        maxLengthHours:
+          type: integer
+          format: int64
+          minimum: 0
+        concurrentSandboxes:
+          type: integer
+          format: int64
+          minimum: 0
+        concurrentTemplateBuilds:
+          type: integer
+          format: int64
+          minimum: 0
+        maxVcpu:
+          type: integer
+          format: int64
+          minimum: 0
+        maxRamMb:
+          type: integer
+          format: int64
+          minimum: 0
+        diskMb:
+          type: integer
+          format: int64
+          minimum: 0
+        eventsTtlDays:
+          type: integer
+          format: int64
+          minimum: 0
+        defaultFreeDiskSizeMb:
+          type: integer
+          format: int64
+          minimum: 0
+        maxDiskSizeMb:
+          type: integer
+          format: int64
+          minimum: 0
 
     UserTeam:
       type: object
@@ -2120,6 +2180,33 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/SuperAdminTemplatesResponse"
+        "400":
+          $ref: "#/components/responses/400"
+        "401":
+          $ref: "#/components/responses/401"
+        "403":
+          $ref: "#/components/responses/403"
+        "500":
+          $ref: "#/components/responses/500"
+
+  /super-admin/teams/{teamID}/limits:
+    put:
+      summary: Update a team's resource limits
+      description: Overrides a team's effective quota (concurrent sandboxes, template builds, disk, etc.) by writing project_limits directly. Requires a signed-in user with a platform role.
+      tags: [super-admin]
+      security:
+        - AuthProviderBearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/teamID"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateTeamLimitsRequest"
+      responses:
+        "204":
+          description: Successfully updated team limits.
         "400":
           $ref: "#/components/responses/400"
         "401":

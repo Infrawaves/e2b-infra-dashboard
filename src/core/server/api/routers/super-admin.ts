@@ -45,6 +45,32 @@ export const superAdminRouter = createTRPCRouter({
     return result.data
   }),
 
+  updateTeamLimits: superAdminRepositoryProcedure
+    .input(
+      z.object({
+        teamID: z.string().uuid(),
+        limits: z.object({
+          maxLengthHours: z.number().int().min(0),
+          concurrentSandboxes: z.number().int().min(0),
+          concurrentTemplateBuilds: z.number().int().min(0),
+          maxVcpu: z.number().int().min(0),
+          maxRamMb: z.number().int().min(0),
+          diskMb: z.number().int().min(0),
+          eventsTtlDays: z.number().int().min(0),
+          defaultFreeDiskSizeMb: z.number().int().min(0),
+          maxDiskSizeMb: z.number().int().min(0),
+        }),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const result = await ctx.superAdminRepository.updateTeamLimits(
+        input.teamID,
+        input.limits
+      )
+      if (!result.ok) throwTRPCErrorFromRepoError(result.error)
+      return result.data
+    }),
+
   getUsers: superAdminRepositoryProcedure.query(async ({ ctx }) => {
     const result = await ctx.superAdminRepository.getUsers()
     if (!result.ok) throwTRPCErrorFromRepoError(result.error)

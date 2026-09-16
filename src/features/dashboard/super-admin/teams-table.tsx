@@ -11,6 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/ui/primitives/table'
+import { EditTeamLimitsDialog } from './edit-team-limits-dialog'
 
 export function SuperAdminTeamsTable() {
   const trpc = useTRPC()
@@ -26,12 +27,14 @@ export function SuperAdminTeamsTable() {
           <TableHead>Tier</TableHead>
           <TableHead>Email</TableHead>
           <TableHead>Status</TableHead>
+          <TableHead>Sandboxes</TableHead>
           <TableHead>Created</TableHead>
+          <TableHead>Actions</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
         {teams.length === 0 ? (
-          <TableEmptyState colSpan={6}>No teams</TableEmptyState>
+          <TableEmptyState colSpan={8}>No teams</TableEmptyState>
         ) : (
           teams.map((t) => (
             <TableRow key={t.id}>
@@ -42,7 +45,11 @@ export function SuperAdminTeamsTable() {
               <TableCell>
                 {t.isBanned ? 'Banned' : t.isBlocked ? 'Blocked' : 'Active'}
               </TableCell>
+              <TableCell>{t.limits.concurrentSandboxes}</TableCell>
               <TableCell>{new Date(t.createdAt).toLocaleString()}</TableCell>
+              <TableCell>
+                <EditTeamLimitsDialog team={t} />
+              </TableCell>
             </TableRow>
           ))
         )}

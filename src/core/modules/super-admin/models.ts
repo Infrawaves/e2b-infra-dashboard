@@ -62,6 +62,19 @@ export interface SuperAdminUser {
   createdAt: string
 }
 
+// A team's editable resource quota (project_limits override).
+export interface SuperAdminTeamLimits {
+  maxLengthHours: number
+  concurrentSandboxes: number
+  concurrentTemplateBuilds: number
+  maxVcpu: number
+  maxRamMb: number
+  diskMb: number
+  eventsTtlDays: number
+  defaultFreeDiskSizeMb: number
+  maxDiskSizeMb: number
+}
+
 // A team as seen in the platform-wide view.
 export interface SuperAdminTeam {
   id: string
@@ -73,4 +86,5 @@ export interface SuperAdminTeam {
   isBanned: boolean
   blockedReason: string | null
   createdAt: string
+  limits: SuperAdminTeamLimits
 }

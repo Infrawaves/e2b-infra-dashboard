@@ -1311,6 +1311,54 @@ export interface paths {
     patch?: never
     trace?: never
   }
+  '/super-admin/teams/{teamID}/limits': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    /**
+     * Update a team's resource limits
+     * @description Overrides a team's effective quota (concurrent sandboxes, template builds, disk, etc.) by writing project_limits directly. Requires a signed-in user with a platform role.
+     */
+    put: {
+      parameters: {
+        query?: never
+        header?: never
+        path: {
+          /** @description Identifier of the team. */
+          teamID: components['parameters']['teamID']
+        }
+        cookie?: never
+      }
+      requestBody: {
+        content: {
+          'application/json': components['schemas']['UpdateTeamLimitsRequest']
+        }
+      }
+      responses: {
+        /** @description Successfully updated team limits. */
+        204: {
+          headers: {
+            [name: string]: unknown
+          }
+          content?: never
+        }
+        400: components['responses']['400']
+        401: components['responses']['401']
+        403: components['responses']['403']
+        500: components['responses']['500']
+      }
+    }
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
   '/super-admin/users': {
     parameters: {
       query?: never
@@ -1651,6 +1699,33 @@ export interface components {
       maxRamMb: number
       /** Format: int32 */
       diskMb: number
+      /** Format: int64 */
+      eventsTtlDays?: number
+      /** Format: int64 */
+      defaultFreeDiskSizeMb?: number
+      /** Format: int64 */
+      maxDiskSizeMb?: number
+    }
+    /** @description Absolute per-team quota overrides written to project_limits. Every field required. */
+    UpdateTeamLimitsRequest: {
+      /** Format: int64 */
+      maxLengthHours: number
+      /** Format: int64 */
+      concurrentSandboxes: number
+      /** Format: int64 */
+      concurrentTemplateBuilds: number
+      /** Format: int64 */
+      maxVcpu: number
+      /** Format: int64 */
+      maxRamMb: number
+      /** Format: int64 */
+      diskMb: number
+      /** Format: int64 */
+      eventsTtlDays: number
+      /** Format: int64 */
+      defaultFreeDiskSizeMb: number
+      /** Format: int64 */
+      maxDiskSizeMb: number
     }
     UserTeam: {
       /** Format: uuid */

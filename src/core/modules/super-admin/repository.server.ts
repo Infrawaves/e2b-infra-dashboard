@@ -7,6 +7,7 @@ import type {
   SuperAdminBuild,
   SuperAdminSandbox,
   SuperAdminTeam,
+  SuperAdminTeamLimits,
   SuperAdminTemplate,
   SuperAdminUser,
 } from '@/core/modules/super-admin/models'
@@ -30,6 +31,10 @@ export interface SuperAdminRepository {
   getTemplates(): Promise<RepoResult<{ templates: SuperAdminTemplate[] }>>
   getBuilds(): Promise<RepoResult<{ builds: SuperAdminBuild[] }>>
   getTeams(): Promise<RepoResult<{ teams: SuperAdminTeam[] }>>
+  updateTeamLimits(
+    teamID: string,
+    limits: SuperAdminTeamLimits
+  ): Promise<RepoResult<null>>
   getUsers(): Promise<RepoResult<{ users: SuperAdminUser[] }>>
   getAdmins(): Promise<RepoResult<{ admins: PlatformAdmin[] }>>
   grantAdmin(email: string, role: PlatformRole): Promise<RepoResult<null>>
@@ -199,9 +204,43 @@ export function createSuperAdminRepository(
         isBanned: t.isBanned,
         blockedReason: t.blockedReason ?? null,
         createdAt: t.createdAt,
+        limits: {
+          maxLengthHours: t.limits.maxLengthHours,
+          concurrentSandboxes: t.limits.concurrentSandboxes,
+          concurrentTemplateBuilds: t.limits.concurrentTemplateBuilds,
+          maxVcpu: t.limits.maxVcpu,
+          maxRamMb: t.limits.maxRamMb,
+          diskMb: t.limits.diskMb,
+          eventsTtlDays: t.limits.eventsTtlDays ?? 0,
+          defaultFreeDiskSizeMb: t.limits.defaultFreeDiskSizeMb ?? 0,
+          maxDiskSizeMb: t.limits.maxDiskSizeMb ?? 0,
+        },
       }))
 
       return ok({ teams })
+    },
+
+    async updateTeamLimits(teamID, limits) {
+      const { error, response } = await deps.apiClient.PUT(
+        '/super-admin/teams/{teamID}/limits',
+        {
+          params: { path: { teamID } },
+          body: limits,
+          headers: deps.authHeaders(scope.accessToken),
+        }
+      )
+
+      if (!response.ok || error) {
+        return err(
+          repoErrorFromHttp(
+            response.status,
+            error?.message ?? 'Failed to update team limits',
+            error
+          )
+        )
+      }
+
+      return ok(null)
     },
 
     async getUsers() {
