@@ -8,6 +8,7 @@ import type {
   SuperAdminSandbox,
   SuperAdminTeam,
   SuperAdminTemplate,
+  SuperAdminUser,
 } from '@/core/modules/super-admin/models'
 import { api, infra } from '@/core/shared/clients/api'
 import { repoErrorFromHttp } from '@/core/shared/errors'
@@ -29,6 +30,7 @@ export interface SuperAdminRepository {
   getTemplates(): Promise<RepoResult<{ templates: SuperAdminTemplate[] }>>
   getBuilds(): Promise<RepoResult<{ builds: SuperAdminBuild[] }>>
   getTeams(): Promise<RepoResult<{ teams: SuperAdminTeam[] }>>
+  getUsers(): Promise<RepoResult<{ users: SuperAdminUser[] }>>
   getAdmins(): Promise<RepoResult<{ admins: PlatformAdmin[] }>>
   grantAdmin(email: string, role: PlatformRole): Promise<RepoResult<null>>
   revokeAdmin(userID: string): Promise<RepoResult<null>>
@@ -200,6 +202,36 @@ export function createSuperAdminRepository(
       }))
 
       return ok({ teams })
+    },
+
+    async getUsers() {
+      const { data, error, response } = await deps.apiClient.GET(
+        '/super-admin/users',
+        {
+          params: { query: { limit: LIST_LIMIT } },
+          headers: deps.authHeaders(scope.accessToken),
+        }
+      )
+
+      if (!response.ok || error) {
+        return err(
+          repoErrorFromHttp(
+            response.status,
+            error?.message ?? 'Failed to fetch users',
+            error
+          )
+        )
+      }
+
+      const users: SuperAdminUser[] = (data?.data ?? []).map((u) => ({
+        userID: u.userID,
+        email: u.email ?? null,
+        name: u.name ?? null,
+        teams: u.teams ?? [],
+        createdAt: u.createdAt,
+      }))
+
+      return ok({ users })
     },
 
     async getAdmins() {

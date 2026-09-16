@@ -12,6 +12,7 @@ const TABS = [
   { label: 'Templates', href: PROTECTED_URLS.SUPER_ADMIN_TEMPLATES },
   { label: 'Builds', href: PROTECTED_URLS.SUPER_ADMIN_BUILDS },
   { label: 'Teams', href: PROTECTED_URLS.SUPER_ADMIN_TEAMS },
+  { label: 'Users', href: PROTECTED_URLS.SUPER_ADMIN_USERS },
 ]
 
 export function SuperAdminNav() {
