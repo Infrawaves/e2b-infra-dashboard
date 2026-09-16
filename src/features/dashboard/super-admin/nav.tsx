@@ -1,9 +1,11 @@
 'use client'
 
+import { useQuery } from '@tanstack/react-query'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { PROTECTED_URLS } from '@/configs/urls'
 import { cn } from '@/lib/utils'
+import { useTRPC } from '@/trpc/client'
 
 const TABS = [
   { label: 'Sandboxes', href: PROTECTED_URLS.SUPER_ADMIN_SANDBOXES },
@@ -14,10 +16,18 @@ const TABS = [
 
 export function SuperAdminNav() {
   const pathname = usePathname()
+  const trpc = useTRPC()
+
+  // Admins tab is super_admin only; getMe drives the gate (non-suspense so nav never blocks).
+  const { data: me } = useQuery(trpc.superAdmin.getMe.queryOptions())
+  const tabs =
+    me?.platformRole === 'super_admin'
+      ? [...TABS, { label: 'Admins', href: PROTECTED_URLS.SUPER_ADMIN_ADMINS }]
+      : TABS
 
   return (
     <nav className="flex items-center gap-1 border-b border-stroke px-4">
-      {TABS.map((tab) => {
+      {tabs.map((tab) => {
         const active = pathname === tab.href
         return (
           <Link

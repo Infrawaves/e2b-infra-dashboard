@@ -2,6 +2,15 @@
 
 export type PlatformRole = 'platform_admin' | 'super_admin'
 
+// A platform admin with the profile of the user it grants the role to.
+export interface PlatformAdmin {
+  userID: string
+  role: PlatformRole
+  email: string | null
+  name: string | null
+  createdAt: string
+}
+
 // A running sandbox with the id of the team that owns it.
 export interface SuperAdminSandbox {
   sandboxID: string
