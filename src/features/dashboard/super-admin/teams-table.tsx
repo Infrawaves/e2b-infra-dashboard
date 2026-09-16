@@ -1,6 +1,6 @@
 'use client'
 
-import { useSuspenseQuery } from '@tanstack/react-query'
+import { useQuery, useSuspenseQuery } from '@tanstack/react-query'
 import { useTRPC } from '@/trpc/client'
 import {
   Table,
@@ -18,6 +18,10 @@ export function SuperAdminTeamsTable() {
   const { data } = useSuspenseQuery(trpc.superAdmin.getTeams.queryOptions())
   const teams = data.teams
 
+  // Editing limits is a super_admin-only write; platform_admin sees teams read-only.
+  const { data: me } = useQuery(trpc.superAdmin.getMe.queryOptions())
+  const canEdit = me?.platformRole === 'super_admin'
+
   return (
     <Table className="w-full">
       <TableHeader>
@@ -29,12 +33,12 @@ export function SuperAdminTeamsTable() {
           <TableHead>Status</TableHead>
           <TableHead>Sandboxes</TableHead>
           <TableHead>Created</TableHead>
-          <TableHead>Actions</TableHead>
+          {canEdit && <TableHead>Actions</TableHead>}
         </TableRow>
       </TableHeader>
       <TableBody>
         {teams.length === 0 ? (
-          <TableEmptyState colSpan={8}>No teams</TableEmptyState>
+          <TableEmptyState colSpan={canEdit ? 8 : 7}>No teams</TableEmptyState>
         ) : (
           teams.map((t) => (
             <TableRow key={t.id}>
@@ -47,9 +51,11 @@ export function SuperAdminTeamsTable() {
               </TableCell>
               <TableCell>{t.limits.concurrentSandboxes}</TableCell>
               <TableCell>{new Date(t.createdAt).toLocaleString()}</TableCell>
-              <TableCell>
-                <EditTeamLimitsDialog team={t} />
-              </TableCell>
+              {canEdit && (
+                <TableCell>
+                  <EditTeamLimitsDialog team={t} />
+                </TableCell>
+              )}
             </TableRow>
           ))
         )}
