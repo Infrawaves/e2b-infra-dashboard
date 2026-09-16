@@ -18,7 +18,7 @@ export function SuperAdminTeamsTable() {
   const { data } = useSuspenseQuery(trpc.superAdmin.getTeams.queryOptions())
   const teams = data.teams
 
-  // Editing limits is a super_admin-only write; platform_admin sees teams read-only.
+  // Both roles see limits; only super_admin can edit them.
   const { data: me } = useQuery(trpc.superAdmin.getMe.queryOptions())
   const canEdit = me?.platformRole === 'super_admin'
 
@@ -33,12 +33,12 @@ export function SuperAdminTeamsTable() {
           <TableHead>Status</TableHead>
           <TableHead>Sandboxes</TableHead>
           <TableHead>Created</TableHead>
-          {canEdit && <TableHead>Actions</TableHead>}
+          <TableHead>Limits</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
         {teams.length === 0 ? (
-          <TableEmptyState colSpan={canEdit ? 8 : 7}>No teams</TableEmptyState>
+          <TableEmptyState colSpan={8}>No teams</TableEmptyState>
         ) : (
           teams.map((t) => (
             <TableRow key={t.id}>
@@ -51,11 +51,9 @@ export function SuperAdminTeamsTable() {
               </TableCell>
               <TableCell>{t.limits.concurrentSandboxes}</TableCell>
               <TableCell>{new Date(t.createdAt).toLocaleString()}</TableCell>
-              {canEdit && (
-                <TableCell>
-                  <EditTeamLimitsDialog team={t} />
-                </TableCell>
-              )}
+              <TableCell>
+                <EditTeamLimitsDialog team={t} readOnly={!canEdit} />
+              </TableCell>
             </TableRow>
           ))
         )}

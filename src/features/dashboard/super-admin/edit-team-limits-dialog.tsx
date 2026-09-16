@@ -23,7 +23,7 @@ import {
 } from '@/ui/primitives/dialog'
 import { Input } from '@/ui/primitives/input'
 
-// Editable quota fields in display order, with human-readable labels.
+// Quota fields in display order, with human-readable labels.
 const FIELDS: { key: keyof SuperAdminTeamLimits; label: string }[] = [
   { key: 'concurrentSandboxes', label: 'Concurrent sandboxes' },
   { key: 'concurrentTemplateBuilds', label: 'Concurrent template builds' },
@@ -36,7 +36,15 @@ const FIELDS: { key: keyof SuperAdminTeamLimits; label: string }[] = [
   { key: 'eventsTtlDays', label: 'Events TTL (days)' },
 ]
 
-export function EditTeamLimitsDialog({ team }: { team: SuperAdminTeam }) {
+// readOnly renders the same field list without the ability to edit or save,
+// so platform_admin can inspect a team's quota while super_admin can change it.
+export function EditTeamLimitsDialog({
+  team,
+  readOnly = false,
+}: {
+  team: SuperAdminTeam
+  readOnly?: boolean
+}) {
   const trpc = useTRPC()
   const queryClient = useQueryClient()
   const { toast } = useToast()
@@ -63,22 +71,26 @@ export function EditTeamLimitsDialog({ team }: { team: SuperAdminTeam }) {
     setOpen(next)
   }
 
+  const title = readOnly ? 'Limits' : 'Edit limits'
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>
         <Button variant="secondary" size="small">
-          Edit limits
+          {readOnly ? 'View limits' : 'Edit limits'}
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle>Edit limits — {team.name}</DialogTitle>
+          <DialogTitle>
+            {title} — {team.name}
+          </DialogTitle>
         </DialogHeader>
         <form
           className="grid grid-cols-2 gap-3"
           onSubmit={(e) => {
             e.preventDefault()
-            update.mutate({ teamID: team.id, limits: values })
+            if (!readOnly) update.mutate({ teamID: team.id, limits: values })
           }}
         >
           {FIELDS.map((f) => (
@@ -93,6 +105,7 @@ export function EditTeamLimitsDialog({ team }: { team: SuperAdminTeam }) {
                 id={`limit-${f.key}`}
                 type="number"
                 min={0}
+                disabled={readOnly}
                 value={values[f.key]}
                 onChange={(e) =>
                   setValues((v) => ({
@@ -104,11 +117,13 @@ export function EditTeamLimitsDialog({ team }: { team: SuperAdminTeam }) {
               />
             </div>
           ))}
-          <DialogFooter className="col-span-2">
-            <Button type="submit" disabled={update.isPending}>
-              Save
-            </Button>
-          </DialogFooter>
+          {!readOnly && (
+            <DialogFooter className="col-span-2">
+              <Button type="submit" disabled={update.isPending}>
+                Save
+              </Button>
+            </DialogFooter>
+          )}
         </form>
       </DialogContent>
     </Dialog>
