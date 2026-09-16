@@ -1311,6 +1311,54 @@ export interface paths {
     patch?: never
     trace?: never
   }
+  '/super-admin/users': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /**
+     * List all users across the platform
+     * @description Returns a paginated list of every platform user with the teams they belong to. Requires a signed-in user with a platform role. Keyset cursor pagination ordered by creation time (newest first).
+     */
+    get: {
+      parameters: {
+        query?: {
+          /** @description Maximum number of items to return per page. */
+          limit?: components['parameters']['builds_limit']
+          /** @description Cursor returned by the previous list response in `created_at|build_id` format. */
+          cursor?: components['parameters']['builds_cursor']
+        }
+        header?: never
+        path?: never
+        cookie?: never
+      }
+      requestBody?: never
+      responses: {
+        /** @description Successfully returned paginated users. */
+        200: {
+          headers: {
+            [name: string]: unknown
+          }
+          content: {
+            'application/json': components['schemas']['SuperAdminUsersResponse']
+          }
+        }
+        400: components['responses']['400']
+        401: components['responses']['401']
+        403: components['responses']['403']
+        500: components['responses']['500']
+      }
+    }
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
   '/super-admin/builds': {
     parameters: {
       query?: never
@@ -1899,6 +1947,23 @@ export interface components {
     }
     PlatformAdminsResponse: {
       data: components['schemas']['PlatformAdminEntry'][]
+    }
+    /** @description A platform user with the teams they belong to, for the super-admin user list. */
+    SuperAdminUser: {
+      /** Format: uuid */
+      userID: string
+      /** @description Email of the user, or `null` when the profile could not be resolved. */
+      email?: string | null
+      name?: string | null
+      /** @description Names of the teams the user belongs to. */
+      teams: string[]
+      /** Format: date-time */
+      createdAt: string
+    }
+    SuperAdminUsersResponse: {
+      data: components['schemas']['SuperAdminUser'][]
+      /** @description Cursor to pass to the next list request, or `null` if there is no next page. */
+      nextCursor: string | null
     }
     /** @description Grant (or update) a platform role to the user with this email. */
     GrantPlatformAdminRequest: {

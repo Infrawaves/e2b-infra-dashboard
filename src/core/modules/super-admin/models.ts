@@ -53,6 +53,15 @@ export interface SuperAdminBuild {
   finishedAt: string | null
 }
 
+// A platform user with the teams they belong to.
+export interface SuperAdminUser {
+  userID: string
+  email: string | null
+  name: string | null
+  teams: string[]
+  createdAt: string
+}
+
 // A team as seen in the platform-wide view.
 export interface SuperAdminTeam {
   id: string

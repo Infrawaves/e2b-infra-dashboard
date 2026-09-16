@@ -45,6 +45,12 @@ export const superAdminRouter = createTRPCRouter({
     return result.data
   }),
 
+  getUsers: superAdminRepositoryProcedure.query(async ({ ctx }) => {
+    const result = await ctx.superAdminRepository.getUsers()
+    if (!result.ok) throwTRPCErrorFromRepoError(result.error)
+    return result.data
+  }),
+
   getAdmins: superAdminRepositoryProcedure.query(async ({ ctx }) => {
     const result = await ctx.superAdminRepository.getAdmins()
     if (!result.ok) throwTRPCErrorFromRepoError(result.error)

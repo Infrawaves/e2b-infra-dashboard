@@ -1315,6 +1315,48 @@ components:
           items:
             $ref: "#/components/schemas/PlatformAdminEntry"
 
+    SuperAdminUser:
+      type: object
+      description: A platform user with the teams they belong to, for the super-admin user list.
+      required:
+        - userID
+        - teams
+        - createdAt
+      properties:
+        userID:
+          type: string
+          format: uuid
+        email:
+          type: string
+          nullable: true
+          description: Email of the user, or `null` when the profile could not be resolved.
+        name:
+          type: string
+          nullable: true
+        teams:
+          type: array
+          description: Names of the teams the user belongs to.
+          items:
+            type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    SuperAdminUsersResponse:
+      type: object
+      required:
+        - data
+        - nextCursor
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/SuperAdminUser"
+        nextCursor:
+          type: string
+          nullable: true
+          description: Cursor to pass to the next list request, or `null` if there is no next page.
+
     GrantPlatformAdminRequest:
       type: object
       description: Grant (or update) a platform role to the user with this email.
@@ -2078,6 +2120,32 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/SuperAdminTemplatesResponse"
+        "400":
+          $ref: "#/components/responses/400"
+        "401":
+          $ref: "#/components/responses/401"
+        "403":
+          $ref: "#/components/responses/403"
+        "500":
+          $ref: "#/components/responses/500"
+
+  /super-admin/users:
+    get:
+      summary: List all users across the platform
+      description: Returns a paginated list of every platform user with the teams they belong to. Requires a signed-in user with a platform role. Keyset cursor pagination ordered by creation time (newest first).
+      tags: [super-admin]
+      security:
+        - AuthProviderBearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/builds_limit"
+        - $ref: "#/components/parameters/builds_cursor"
+      responses:
+        "200":
+          description: Successfully returned paginated users.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuperAdminUsersResponse"
         "400":
           $ref: "#/components/responses/400"
         "401":
