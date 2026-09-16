@@ -2,6 +2,7 @@ import 'server-only'
 
 import { authHeaders } from '@/configs/api'
 import type {
+  PlatformAdmin,
   PlatformRole,
   SuperAdminBuild,
   SuperAdminSandbox,
@@ -28,6 +29,9 @@ export interface SuperAdminRepository {
   getTemplates(): Promise<RepoResult<{ templates: SuperAdminTemplate[] }>>
   getBuilds(): Promise<RepoResult<{ builds: SuperAdminBuild[] }>>
   getTeams(): Promise<RepoResult<{ teams: SuperAdminTeam[] }>>
+  getAdmins(): Promise<RepoResult<{ admins: PlatformAdmin[] }>>
+  grantAdmin(email: string, role: PlatformRole): Promise<RepoResult<null>>
+  revokeAdmin(userID: string): Promise<RepoResult<null>>
 }
 
 export function createSuperAdminRepository(
@@ -196,6 +200,79 @@ export function createSuperAdminRepository(
       }))
 
       return ok({ teams })
+    },
+
+    async getAdmins() {
+      const { data, error, response } = await deps.apiClient.GET(
+        '/super-admin/admins',
+        {
+          headers: deps.authHeaders(scope.accessToken),
+        }
+      )
+
+      if (!response.ok || error) {
+        return err(
+          repoErrorFromHttp(
+            response.status,
+            error?.message ?? 'Failed to fetch admins',
+            error
+          )
+        )
+      }
+
+      const admins: PlatformAdmin[] = (data?.data ?? []).map((a) => ({
+        userID: a.userID,
+        role: a.role,
+        email: a.email ?? null,
+        name: a.name ?? null,
+        createdAt: a.createdAt,
+      }))
+
+      return ok({ admins })
+    },
+
+    async grantAdmin(email, role) {
+      const { error, response } = await deps.apiClient.POST(
+        '/super-admin/admins',
+        {
+          headers: deps.authHeaders(scope.accessToken),
+          body: { email, role },
+        }
+      )
+
+      if (!response.ok || error) {
+        return err(
+          repoErrorFromHttp(
+            response.status,
+            error?.message ?? 'Failed to grant platform role',
+            error
+          )
+        )
+      }
+
+      return ok(null)
+    },
+
+    async revokeAdmin(userID) {
+      const { error, response } = await deps.apiClient.DELETE(
+        '/super-admin/admins/{userID}',
+        {
+          params: { path: { userID } },
+          headers: deps.authHeaders(scope.accessToken),
+        }
+      )
+
+      if (!response.ok || error) {
+        return err(
+          repoErrorFromHttp(
+            response.status,
+            error?.message ?? 'Failed to revoke platform role',
+            error
+          )
+        )
+      }
+
+      return ok(null)
     },
   }
 }

@@ -1278,6 +1278,59 @@ components:
             - super_admin
           description: The caller's platform role, or `null` when the caller has no platform role.
 
+    PlatformAdminEntry:
+      type: object
+      description: A platform admin with the profile of the user it grants the role to.
+      required:
+        - userID
+        - role
+        - createdAt
+      properties:
+        userID:
+          type: string
+          format: uuid
+        role:
+          type: string
+          enum:
+            - platform_admin
+            - super_admin
+        email:
+          type: string
+          nullable: true
+          description: Email of the user, or `null` when the profile could not be resolved.
+        name:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+
+    PlatformAdminsResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/PlatformAdminEntry"
+
+    GrantPlatformAdminRequest:
+      type: object
+      description: Grant (or update) a platform role to the user with this email.
+      required:
+        - email
+        - role
+      properties:
+        email:
+          type: string
+          format: email
+        role:
+          type: string
+          enum:
+            - platform_admin
+            - super_admin
+
 tags:
   - name: builds
   - name: sandboxes
@@ -1934,6 +1987,76 @@ paths:
                 $ref: "#/components/schemas/SuperAdminMe"
         "401":
           $ref: "#/components/responses/401"
+        "500":
+          $ref: "#/components/responses/500"
+
+  /super-admin/admins:
+    get:
+      summary: List platform admins
+      description: Returns every platform admin with the granted role and the user's profile. Super-admin only.
+      tags: [super-admin]
+      security:
+        - AuthProviderBearerAuth: []
+      responses:
+        "200":
+          description: Successfully returned platform admins.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlatformAdminsResponse"
+        "401":
+          $ref: "#/components/responses/401"
+        "403":
+          $ref: "#/components/responses/403"
+        "500":
+          $ref: "#/components/responses/500"
+    post:
+      summary: Grant a platform role by email
+      description: Grants (or updates) a platform role to the user with the given email. Super-admin only.
+      tags: [super-admin]
+      security:
+        - AuthProviderBearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GrantPlatformAdminRequest"
+      responses:
+        "204":
+          description: Role granted.
+        "400":
+          $ref: "#/components/responses/400"
+        "401":
+          $ref: "#/components/responses/401"
+        "403":
+          $ref: "#/components/responses/403"
+        "404":
+          $ref: "#/components/responses/404"
+        "500":
+          $ref: "#/components/responses/500"
+
+  /super-admin/admins/{userID}:
+    delete:
+      summary: Revoke a user's platform role
+      description: Removes the user's platform admin row. Super-admin only.
+      tags: [super-admin]
+      security:
+        - AuthProviderBearerAuth: []
+      parameters:
+        - name: userID
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Role revoked.
+        "401":
+          $ref: "#/components/responses/401"
+        "403":
+          $ref: "#/components/responses/403"
         "500":
           $ref: "#/components/responses/500"
 

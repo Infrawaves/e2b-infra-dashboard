@@ -1147,6 +1147,120 @@ export interface paths {
     patch?: never
     trace?: never
   }
+  '/super-admin/admins': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /**
+     * List platform admins
+     * @description Returns every platform admin with the granted role and the user's profile. Super-admin only.
+     */
+    get: {
+      parameters: {
+        query?: never
+        header?: never
+        path?: never
+        cookie?: never
+      }
+      requestBody?: never
+      responses: {
+        /** @description Successfully returned platform admins. */
+        200: {
+          headers: {
+            [name: string]: unknown
+          }
+          content: {
+            'application/json': components['schemas']['PlatformAdminsResponse']
+          }
+        }
+        401: components['responses']['401']
+        403: components['responses']['403']
+        500: components['responses']['500']
+      }
+    }
+    put?: never
+    /**
+     * Grant a platform role by email
+     * @description Grants (or updates) a platform role to the user with the given email. Super-admin only.
+     */
+    post: {
+      parameters: {
+        query?: never
+        header?: never
+        path?: never
+        cookie?: never
+      }
+      requestBody: {
+        content: {
+          'application/json': components['schemas']['GrantPlatformAdminRequest']
+        }
+      }
+      responses: {
+        /** @description Role granted. */
+        204: {
+          headers: {
+            [name: string]: unknown
+          }
+          content?: never
+        }
+        400: components['responses']['400']
+        401: components['responses']['401']
+        403: components['responses']['403']
+        404: components['responses']['404']
+        500: components['responses']['500']
+      }
+    }
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/super-admin/admins/{userID}': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    post?: never
+    /**
+     * Revoke a user's platform role
+     * @description Removes the user's platform admin row. Super-admin only.
+     */
+    delete: {
+      parameters: {
+        query?: never
+        header?: never
+        path: {
+          userID: string
+        }
+        cookie?: never
+      }
+      requestBody?: never
+      responses: {
+        /** @description Role revoked. */
+        204: {
+          headers: {
+            [name: string]: unknown
+          }
+          content?: never
+        }
+        401: components['responses']['401']
+        403: components['responses']['403']
+        500: components['responses']['500']
+      }
+    }
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
   '/super-admin/templates': {
     parameters: {
       query?: never
@@ -1770,6 +1884,28 @@ export interface components {
        * @enum {string|null}
        */
       platformRole: 'platform_admin' | 'super_admin' | null
+    }
+    /** @description A platform admin with the profile of the user it grants the role to. */
+    PlatformAdminEntry: {
+      /** Format: uuid */
+      userID: string
+      /** @enum {string} */
+      role: 'platform_admin' | 'super_admin'
+      /** @description Email of the user, or `null` when the profile could not be resolved. */
+      email?: string | null
+      name?: string | null
+      /** Format: date-time */
+      createdAt: string
+    }
+    PlatformAdminsResponse: {
+      data: components['schemas']['PlatformAdminEntry'][]
+    }
+    /** @description Grant (or update) a platform role to the user with this email. */
+    GrantPlatformAdminRequest: {
+      /** Format: email */
+      email: string
+      /** @enum {string} */
+      role: 'platform_admin' | 'super_admin'
     }
   }
   responses: {
