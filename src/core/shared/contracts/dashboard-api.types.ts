@@ -1547,6 +1547,52 @@ export interface paths {
     patch?: never
     trace?: never
   }
+  '/super-admin/users/{userID}/teams/{teamID}': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    post?: never
+    /**
+     * Remove a user from a team
+     * @description Removes the user's membership in the given team. A team's default member and its last remaining member cannot be removed. Requires a signed-in super admin.
+     */
+    delete: {
+      parameters: {
+        query?: never
+        header?: never
+        path: {
+          userID: string
+          /** @description Identifier of the team. */
+          teamID: components['parameters']['teamID']
+        }
+        cookie?: never
+      }
+      requestBody?: never
+      responses: {
+        /** @description User removed from the team. */
+        204: {
+          headers: {
+            [name: string]: unknown
+          }
+          content?: never
+        }
+        400: components['responses']['400']
+        401: components['responses']['401']
+        403: components['responses']['403']
+        404: components['responses']['404']
+        500: components['responses']['500']
+      }
+    }
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
   '/super-admin/builds': {
     parameters: {
       query?: never
@@ -2170,8 +2216,12 @@ export interface components {
       /** @description Email of the user, or `null` when the profile could not be resolved. */
       email?: string | null
       name?: string | null
-      /** @description Names of the teams the user belongs to. */
-      teams: string[]
+      /** @description The teams the user belongs to. */
+      teams: {
+        /** Format: uuid */
+        teamID: string
+        name: string
+      }[]
       /** Format: date-time */
       createdAt: string
     }

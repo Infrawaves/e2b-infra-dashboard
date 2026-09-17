@@ -111,6 +111,22 @@ export const superAdminRouter = createTRPCRouter({
       return result.data
     }),
 
+  removeUserFromTeam: superAdminRepositoryProcedure
+    .input(
+      z.object({
+        userID: z.string().uuid(),
+        teamID: z.string().uuid(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const result = await ctx.superAdminRepository.removeUserFromTeam(
+        input.userID,
+        input.teamID
+      )
+      if (!result.ok) throwTRPCErrorFromRepoError(result.error)
+      return result.data
+    }),
+
   deleteUser: superAdminRepositoryProcedure
     .input(z.object({ userID: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {

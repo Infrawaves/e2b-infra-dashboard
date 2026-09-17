@@ -13,6 +13,7 @@ import {
 } from '@/ui/primitives/table'
 import { AddUserToTeamDialog } from './add-user-to-team-dialog'
 import { DeleteUserDialog } from './delete-user-dialog'
+import { RemoveUserTeamsDialog } from './remove-user-teams-dialog'
 
 export function SuperAdminUsersTable() {
   const trpc = useTRPC()
@@ -46,7 +47,9 @@ export function SuperAdminUsersTable() {
               <TableCell>{u.email ?? '—'}</TableCell>
               <TableCell>{u.name ?? '—'}</TableCell>
               <TableCell>
-                {u.teams.length > 0 ? u.teams.join(', ') : '—'}
+                {u.teams.length > 0
+                  ? u.teams.map((t) => t.name).join(', ')
+                  : '—'}
               </TableCell>
               <TableCell className="font-mono text-xs">{u.userID}</TableCell>
               <TableCell>{new Date(u.createdAt).toLocaleString()}</TableCell>
@@ -55,6 +58,10 @@ export function SuperAdminUsersTable() {
                   <div className="flex justify-end gap-2">
                     <AddUserToTeamDialog
                       userID={u.userID}
+                      label={u.email ?? u.userID}
+                    />
+                    <RemoveUserTeamsDialog
+                      user={u}
                       label={u.email ?? u.userID}
                     />
                     <DeleteUserDialog

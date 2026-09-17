@@ -54,11 +54,16 @@ export interface SuperAdminBuild {
 }
 
 // A platform user with the teams they belong to.
+export interface SuperAdminUserTeam {
+  teamID: string
+  name: string
+}
+
 export interface SuperAdminUser {
   userID: string
   email: string | null
   name: string | null
-  teams: string[]
+  teams: SuperAdminUserTeam[]
   createdAt: string
 }
 

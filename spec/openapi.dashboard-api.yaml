@@ -1395,9 +1395,18 @@ components:
           nullable: true
         teams:
           type: array
-          description: Names of the teams the user belongs to.
+          description: The teams the user belongs to.
           items:
-            type: string
+            type: object
+            required:
+              - teamID
+              - name
+            properties:
+              teamID:
+                type: string
+                format: uuid
+              name:
+                type: string
         createdAt:
           type: string
           format: date-time
@@ -2342,6 +2351,35 @@ paths:
       responses:
         "201":
           description: User added to the team.
+        "400":
+          $ref: "#/components/responses/400"
+        "401":
+          $ref: "#/components/responses/401"
+        "403":
+          $ref: "#/components/responses/403"
+        "404":
+          $ref: "#/components/responses/404"
+        "500":
+          $ref: "#/components/responses/500"
+
+  /super-admin/users/{userID}/teams/{teamID}:
+    delete:
+      summary: Remove a user from a team
+      description: Removes the user's membership in the given team. A team's default member and its last remaining member cannot be removed. Requires a signed-in super admin.
+      tags: [super-admin]
+      security:
+        - AuthProviderBearerAuth: []
+      parameters:
+        - name: userID
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: "#/components/parameters/teamID"
+      responses:
+        "204":
+          description: User removed from the team.
         "400":
           $ref: "#/components/responses/400"
         "401":

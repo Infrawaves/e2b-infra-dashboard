@@ -42,6 +42,10 @@ export interface SuperAdminRepository {
   ): Promise<RepoResult<null>>
   getUsers(): Promise<RepoResult<{ users: SuperAdminUser[] }>>
   addUserToTeam(userID: string, teamID: string): Promise<RepoResult<null>>
+  removeUserFromTeam(
+    userID: string,
+    teamID: string
+  ): Promise<RepoResult<null>>
   deleteUser(userID: string): Promise<RepoResult<null>>
   getAdmins(): Promise<RepoResult<{ admins: PlatformAdmin[] }>>
   grantAdmin(email: string, role: PlatformRole): Promise<RepoResult<null>>
@@ -296,7 +300,7 @@ export function createSuperAdminRepository(
         userID: u.userID,
         email: u.email ?? null,
         name: u.name ?? null,
-        teams: u.teams ?? [],
+        teams: (u.teams ?? []).map((t) => ({ teamID: t.teamID, name: t.name })),
         createdAt: u.createdAt,
       }))
 
@@ -318,6 +322,28 @@ export function createSuperAdminRepository(
           repoErrorFromHttp(
             response.status,
             error?.message ?? 'Failed to add user to team',
+            error
+          )
+        )
+      }
+
+      return ok(null)
+    },
+
+    async removeUserFromTeam(userID, teamID) {
+      const { error, response } = await deps.apiClient.DELETE(
+        '/super-admin/users/{userID}/teams/{teamID}',
+        {
+          params: { path: { userID, teamID } },
+          headers: deps.authHeaders(scope.accessToken),
+        }
+      )
+
+      if (!response.ok || error) {
+        return err(
+          repoErrorFromHttp(
+            response.status,
+            error?.message ?? 'Failed to remove user from team',
             error
           )
         )
