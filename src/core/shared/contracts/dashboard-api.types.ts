@@ -1407,6 +1407,98 @@ export interface paths {
     patch?: never
     trace?: never
   }
+  '/super-admin/users/{userID}': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    post?: never
+    /**
+     * Delete a user
+     * @description Permanently deletes the user's platform records and identity-provider identity. Requires a signed-in super admin.
+     */
+    delete: {
+      parameters: {
+        query?: never
+        header?: never
+        path: {
+          userID: string
+        }
+        cookie?: never
+      }
+      requestBody?: never
+      responses: {
+        /** @description User deleted. */
+        204: {
+          headers: {
+            [name: string]: unknown
+          }
+          content?: never
+        }
+        401: components['responses']['401']
+        403: components['responses']['403']
+        404: components['responses']['404']
+        409: components['responses']['409']
+        500: components['responses']['500']
+      }
+    }
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/super-admin/users/{userID}/teams': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /**
+     * Add a user to a team
+     * @description Adds the user as a member of the given team. Requires a signed-in super admin.
+     */
+    post: {
+      parameters: {
+        query?: never
+        header?: never
+        path: {
+          userID: string
+        }
+        cookie?: never
+      }
+      requestBody: {
+        content: {
+          'application/json': components['schemas']['AddUserToTeamRequest']
+        }
+      }
+      responses: {
+        /** @description User added to the team. */
+        201: {
+          headers: {
+            [name: string]: unknown
+          }
+          content?: never
+        }
+        400: components['responses']['400']
+        401: components['responses']['401']
+        403: components['responses']['403']
+        404: components['responses']['404']
+        500: components['responses']['500']
+      }
+    }
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
   '/super-admin/builds': {
     parameters: {
       query?: never
@@ -2039,6 +2131,11 @@ export interface components {
       data: components['schemas']['SuperAdminUser'][]
       /** @description Cursor to pass to the next list request, or `null` if there is no next page. */
       nextCursor: string | null
+    }
+    /** @description Add the user to the given team. */
+    AddUserToTeamRequest: {
+      /** Format: uuid */
+      teamID: string
     }
     /** @description Grant (or update) a platform role to the user with this email. */
     GrantPlatformAdminRequest: {

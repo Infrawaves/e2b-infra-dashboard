@@ -1417,6 +1417,16 @@ components:
           nullable: true
           description: Cursor to pass to the next list request, or `null` if there is no next page.
 
+    AddUserToTeamRequest:
+      type: object
+      description: Add the user to the given team.
+      required:
+        - teamID
+      properties:
+        teamID:
+          type: string
+          format: uuid
+
     GrantPlatformAdminRequest:
       type: object
       description: Grant (or update) a platform role to the user with this email.
@@ -2239,6 +2249,68 @@ paths:
           $ref: "#/components/responses/401"
         "403":
           $ref: "#/components/responses/403"
+        "500":
+          $ref: "#/components/responses/500"
+
+  /super-admin/users/{userID}:
+    delete:
+      summary: Delete a user
+      description: Permanently deletes the user's platform records and identity-provider identity. Requires a signed-in super admin.
+      tags: [super-admin]
+      security:
+        - AuthProviderBearerAuth: []
+      parameters:
+        - name: userID
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: User deleted.
+        "401":
+          $ref: "#/components/responses/401"
+        "403":
+          $ref: "#/components/responses/403"
+        "404":
+          $ref: "#/components/responses/404"
+        "409":
+          $ref: "#/components/responses/409"
+        "500":
+          $ref: "#/components/responses/500"
+
+  /super-admin/users/{userID}/teams:
+    post:
+      summary: Add a user to a team
+      description: Adds the user as a member of the given team. Requires a signed-in super admin.
+      tags: [super-admin]
+      security:
+        - AuthProviderBearerAuth: []
+      parameters:
+        - name: userID
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddUserToTeamRequest"
+      responses:
+        "201":
+          description: User added to the team.
+        "400":
+          $ref: "#/components/responses/400"
+        "401":
+          $ref: "#/components/responses/401"
+        "403":
+          $ref: "#/components/responses/403"
+        "404":
+          $ref: "#/components/responses/404"
         "500":
           $ref: "#/components/responses/500"
 

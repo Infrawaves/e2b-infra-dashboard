@@ -77,6 +77,30 @@ export const superAdminRouter = createTRPCRouter({
     return result.data
   }),
 
+  addUserToTeam: superAdminRepositoryProcedure
+    .input(
+      z.object({
+        userID: z.string().uuid(),
+        teamID: z.string().uuid(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const result = await ctx.superAdminRepository.addUserToTeam(
+        input.userID,
+        input.teamID
+      )
+      if (!result.ok) throwTRPCErrorFromRepoError(result.error)
+      return result.data
+    }),
+
+  deleteUser: superAdminRepositoryProcedure
+    .input(z.object({ userID: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      const result = await ctx.superAdminRepository.deleteUser(input.userID)
+      if (!result.ok) throwTRPCErrorFromRepoError(result.error)
+      return result.data
+    }),
+
   getAdmins: superAdminRepositoryProcedure.query(async ({ ctx }) => {
     const result = await ctx.superAdminRepository.getAdmins()
     if (!result.ok) throwTRPCErrorFromRepoError(result.error)
