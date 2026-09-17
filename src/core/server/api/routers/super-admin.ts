@@ -71,6 +71,24 @@ export const superAdminRouter = createTRPCRouter({
       return result.data
     }),
 
+  setTeamBlocked: superAdminRepositoryProcedure
+    .input(
+      z.object({
+        teamID: z.string().uuid(),
+        isBlocked: z.boolean(),
+        blockedReason: z.string().nullable().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const result = await ctx.superAdminRepository.setTeamBlocked(
+        input.teamID,
+        input.isBlocked,
+        input.blockedReason ?? null
+      )
+      if (!result.ok) throwTRPCErrorFromRepoError(result.error)
+      return result.data
+    }),
+
   getUsers: superAdminRepositoryProcedure.query(async ({ ctx }) => {
     const result = await ctx.superAdminRepository.getUsers()
     if (!result.ok) throwTRPCErrorFromRepoError(result.error)

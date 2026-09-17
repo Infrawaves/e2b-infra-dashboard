@@ -1359,6 +1359,54 @@ export interface paths {
     patch?: never
     trace?: never
   }
+  '/super-admin/teams/{teamID}/block': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    /**
+     * Block or unblock a team
+     * @description Sets a team's blocked state. A blocked team has all its API requests rejected with 403 by the blocked-team middleware. Requires a signed-in super admin.
+     */
+    put: {
+      parameters: {
+        query?: never
+        header?: never
+        path: {
+          /** @description Identifier of the team. */
+          teamID: components['parameters']['teamID']
+        }
+        cookie?: never
+      }
+      requestBody: {
+        content: {
+          'application/json': components['schemas']['SetTeamBlockedRequest']
+        }
+      }
+      responses: {
+        /** @description Successfully updated the team's blocked state. */
+        204: {
+          headers: {
+            [name: string]: unknown
+          }
+          content?: never
+        }
+        400: components['responses']['400']
+        401: components['responses']['401']
+        403: components['responses']['403']
+        500: components['responses']['500']
+      }
+    }
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
   '/super-admin/users': {
     parameters: {
       query?: never
@@ -2136,6 +2184,11 @@ export interface components {
     AddUserToTeamRequest: {
       /** Format: uuid */
       teamID: string
+    }
+    /** @description Block or unblock a team. When blocking, an optional reason is stored and returned to the team on rejected requests. */
+    SetTeamBlockedRequest: {
+      isBlocked: boolean
+      blockedReason?: string | null
     }
     /** @description Grant (or update) a platform role to the user with this email. */
     GrantPlatformAdminRequest: {

@@ -35,6 +35,11 @@ export interface SuperAdminRepository {
     teamID: string,
     limits: SuperAdminTeamLimits
   ): Promise<RepoResult<null>>
+  setTeamBlocked(
+    teamID: string,
+    isBlocked: boolean,
+    blockedReason: string | null
+  ): Promise<RepoResult<null>>
   getUsers(): Promise<RepoResult<{ users: SuperAdminUser[] }>>
   addUserToTeam(userID: string, teamID: string): Promise<RepoResult<null>>
   deleteUser(userID: string): Promise<RepoResult<null>>
@@ -237,6 +242,29 @@ export function createSuperAdminRepository(
           repoErrorFromHttp(
             response.status,
             error?.message ?? 'Failed to update team limits',
+            error
+          )
+        )
+      }
+
+      return ok(null)
+    },
+
+    async setTeamBlocked(teamID, isBlocked, blockedReason) {
+      const { error, response } = await deps.apiClient.PUT(
+        '/super-admin/teams/{teamID}/block',
+        {
+          params: { path: { teamID } },
+          body: { isBlocked, blockedReason },
+          headers: deps.authHeaders(scope.accessToken),
+        }
+      )
+
+      if (!response.ok || error) {
+        return err(
+          repoErrorFromHttp(
+            response.status,
+            error?.message ?? 'Failed to update team blocked state',
             error
           )
         )

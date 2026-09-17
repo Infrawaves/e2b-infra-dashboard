@@ -11,6 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/ui/primitives/table'
+import { BlockTeamDialog } from './block-team-dialog'
 import { EditTeamLimitsDialog } from './edit-team-limits-dialog'
 
 export function SuperAdminTeamsTable() {
@@ -34,11 +35,12 @@ export function SuperAdminTeamsTable() {
           <TableHead>Sandboxes</TableHead>
           <TableHead>Created</TableHead>
           <TableHead>Limits</TableHead>
+          {canEdit && <TableHead>Actions</TableHead>}
         </TableRow>
       </TableHeader>
       <TableBody>
         {teams.length === 0 ? (
-          <TableEmptyState colSpan={8}>No teams</TableEmptyState>
+          <TableEmptyState colSpan={canEdit ? 9 : 8}>No teams</TableEmptyState>
         ) : (
           teams.map((t) => (
             <TableRow key={t.id}>
@@ -54,6 +56,11 @@ export function SuperAdminTeamsTable() {
               <TableCell>
                 <EditTeamLimitsDialog team={t} readOnly={!canEdit} />
               </TableCell>
+              {canEdit && (
+                <TableCell>
+                  <BlockTeamDialog team={t} />
+                </TableCell>
+              )}
             </TableRow>
           ))
         )}

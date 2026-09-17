@@ -1427,6 +1427,18 @@ components:
           type: string
           format: uuid
 
+    SetTeamBlockedRequest:
+      type: object
+      description: Block or unblock a team. When blocking, an optional reason is stored and returned to the team on rejected requests.
+      required:
+        - isBlocked
+      properties:
+        isBlocked:
+          type: boolean
+        blockedReason:
+          type: string
+          nullable: true
+
     GrantPlatformAdminRequest:
       type: object
       description: Grant (or update) a platform role to the user with this email.
@@ -2217,6 +2229,33 @@ paths:
       responses:
         "204":
           description: Successfully updated team limits.
+        "400":
+          $ref: "#/components/responses/400"
+        "401":
+          $ref: "#/components/responses/401"
+        "403":
+          $ref: "#/components/responses/403"
+        "500":
+          $ref: "#/components/responses/500"
+
+  /super-admin/teams/{teamID}/block:
+    put:
+      summary: Block or unblock a team
+      description: Sets a team's blocked state. A blocked team has all its API requests rejected with 403 by the blocked-team middleware. Requires a signed-in super admin.
+      tags: [super-admin]
+      security:
+        - AuthProviderBearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/teamID"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SetTeamBlockedRequest"
+      responses:
+        "204":
+          description: Successfully updated the team's blocked state.
         "400":
           $ref: "#/components/responses/400"
         "401":
