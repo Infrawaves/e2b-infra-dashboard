@@ -22,15 +22,27 @@ type SuperAdminRepositoryDeps = {
   authHeaders: typeof authHeaders
 }
 
-// First-page size for the platform-wide list views; load-more is a follow-up.
+// Default page size for the platform-wide list views (keyset load-more).
 const LIST_LIMIT = 50
+
+type PageParams = { cursor?: string | null; limit?: number }
 
 export interface SuperAdminRepository {
   getMe(): Promise<RepoResult<{ platformRole: PlatformRole | null }>>
   getSandboxes(): Promise<RepoResult<{ sandboxes: SuperAdminSandbox[] }>>
-  getTemplates(): Promise<RepoResult<{ templates: SuperAdminTemplate[] }>>
-  getBuilds(): Promise<RepoResult<{ builds: SuperAdminBuild[] }>>
-  getTeams(): Promise<RepoResult<{ teams: SuperAdminTeam[] }>>
+  getTemplates(
+    params?: PageParams
+  ): Promise<
+    RepoResult<{ templates: SuperAdminTemplate[]; nextCursor: string | null }>
+  >
+  getBuilds(
+    params?: PageParams
+  ): Promise<
+    RepoResult<{ builds: SuperAdminBuild[]; nextCursor: string | null }>
+  >
+  getTeams(
+    params?: PageParams
+  ): Promise<RepoResult<{ teams: SuperAdminTeam[]; nextCursor: string | null }>>
   updateTeamLimits(
     teamID: string,
     limits: SuperAdminTeamLimits
@@ -40,12 +52,11 @@ export interface SuperAdminRepository {
     isBlocked: boolean,
     blockedReason: string | null
   ): Promise<RepoResult<null>>
-  getUsers(): Promise<RepoResult<{ users: SuperAdminUser[] }>>
+  getUsers(
+    params?: PageParams
+  ): Promise<RepoResult<{ users: SuperAdminUser[]; nextCursor: string | null }>>
   addUserToTeam(userID: string, teamID: string): Promise<RepoResult<null>>
-  removeUserFromTeam(
-    userID: string,
-    teamID: string
-  ): Promise<RepoResult<null>>
+  removeUserFromTeam(userID: string, teamID: string): Promise<RepoResult<null>>
   deleteUser(userID: string): Promise<RepoResult<null>>
   getAdmins(): Promise<RepoResult<{ admins: PlatformAdmin[] }>>
   grantAdmin(email: string, role: PlatformRole): Promise<RepoResult<null>>
@@ -116,11 +127,16 @@ export function createSuperAdminRepository(
       return ok({ sandboxes })
     },
 
-    async getTemplates() {
+    async getTemplates(params) {
       const { data, error, response } = await deps.apiClient.GET(
         '/super-admin/templates',
         {
-          params: { query: { limit: LIST_LIMIT } },
+          params: {
+            query: {
+              limit: params?.limit ?? LIST_LIMIT,
+              cursor: params?.cursor ?? undefined,
+            },
+          },
           headers: deps.authHeaders(scope.accessToken),
         }
       )
@@ -149,14 +165,19 @@ export function createSuperAdminRepository(
         buildCount: t.buildCount,
       }))
 
-      return ok({ templates })
+      return ok({ templates, nextCursor: data?.nextCursor ?? null })
     },
 
-    async getBuilds() {
+    async getBuilds(params) {
       const { data, error, response } = await deps.apiClient.GET(
         '/super-admin/builds',
         {
-          params: { query: { limit: LIST_LIMIT } },
+          params: {
+            query: {
+              limit: params?.limit ?? LIST_LIMIT,
+              cursor: params?.cursor ?? undefined,
+            },
+          },
           headers: deps.authHeaders(scope.accessToken),
         }
       )
@@ -183,14 +204,19 @@ export function createSuperAdminRepository(
         finishedAt: b.finishedAt ?? null,
       }))
 
-      return ok({ builds })
+      return ok({ builds, nextCursor: data?.nextCursor ?? null })
     },
 
-    async getTeams() {
+    async getTeams(params) {
       const { data, error, response } = await deps.apiClient.GET(
         '/super-admin/teams',
         {
-          params: { query: { limit: LIST_LIMIT } },
+          params: {
+            query: {
+              limit: params?.limit ?? LIST_LIMIT,
+              cursor: params?.cursor ?? undefined,
+            },
+          },
           headers: deps.authHeaders(scope.accessToken),
         }
       )
@@ -228,7 +254,7 @@ export function createSuperAdminRepository(
         },
       }))
 
-      return ok({ teams })
+      return ok({ teams, nextCursor: data?.nextCursor ?? null })
     },
 
     async updateTeamLimits(teamID, limits) {
@@ -277,11 +303,16 @@ export function createSuperAdminRepository(
       return ok(null)
     },
 
-    async getUsers() {
+    async getUsers(params) {
       const { data, error, response } = await deps.apiClient.GET(
         '/super-admin/users',
         {
-          params: { query: { limit: LIST_LIMIT } },
+          params: {
+            query: {
+              limit: params?.limit ?? LIST_LIMIT,
+              cursor: params?.cursor ?? undefined,
+            },
+          },
           headers: deps.authHeaders(scope.accessToken),
         }
       )
@@ -304,7 +335,7 @@ export function createSuperAdminRepository(
         createdAt: u.createdAt,
       }))
 
-      return ok({ users })
+      return ok({ users, nextCursor: data?.nextCursor ?? null })
     },
 
     async addUserToTeam(userID, teamID) {

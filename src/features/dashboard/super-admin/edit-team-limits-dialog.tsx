@@ -51,7 +51,7 @@ export function EditTeamLimitsDialog({
   const [open, setOpen] = useState(false)
   const [values, setValues] = useState<SuperAdminTeamLimits>(team.limits)
 
-  const listQueryKey = trpc.superAdmin.getTeams.queryOptions().queryKey
+  const listQueryKey = trpc.superAdmin.getTeams.pathKey()
 
   const update = useMutation(
     trpc.superAdmin.updateTeamLimits.mutationOptions({
@@ -110,7 +110,10 @@ export function EditTeamLimitsDialog({
                 onChange={(e) =>
                   setValues((v) => ({
                     ...v,
-                    [f.key]: Math.max(0, Math.floor(Number(e.target.value) || 0)),
+                    [f.key]: Math.max(
+                      0,
+                      Math.floor(Number(e.target.value) || 0)
+                    ),
                   }))
                 }
                 className="h-9 border-stroke"

@@ -4,7 +4,12 @@ import { SuperAdminTemplatesTable } from '@/features/dashboard/super-admin/templ
 import { HydrateClient, prefetch, trpc } from '@/trpc/server'
 
 export default function SuperAdminTemplatesPage() {
-  prefetch(trpc.superAdmin.getTemplates.queryOptions())
+  prefetch(
+    trpc.superAdmin.getTemplates.infiniteQueryOptions(
+      {},
+      { getNextPageParam: (page) => page.nextCursor ?? undefined }
+    )
+  )
 
   return (
     <HydrateClient>

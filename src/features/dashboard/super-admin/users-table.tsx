@@ -1,7 +1,8 @@
 'use client'
 
-import { useQuery, useSuspenseQuery } from '@tanstack/react-query'
+import { useQuery, useSuspenseInfiniteQuery } from '@tanstack/react-query'
 import { useTRPC } from '@/trpc/client'
+import { Button } from '@/ui/primitives/button'
 import {
   Table,
   TableBody,
@@ -17,8 +18,14 @@ import { RemoveUserTeamsDialog } from './remove-user-teams-dialog'
 
 export function SuperAdminUsersTable() {
   const trpc = useTRPC()
-  const { data } = useSuspenseQuery(trpc.superAdmin.getUsers.queryOptions())
-  const users = data.users
+  const { data, hasNextPage, isFetchingNextPage, fetchNextPage } =
+    useSuspenseInfiniteQuery(
+      trpc.superAdmin.getUsers.infiniteQueryOptions(
+        {},
+        { getNextPageParam: (page) => page.nextCursor ?? undefined }
+      )
+    )
+  const users = data.pages.flatMap((p) => p.users)
 
   // Add-to-team and delete are super_admin-only actions.
   const meQuery = useQuery(trpc.superAdmin.getMe.queryOptions())
@@ -27,54 +34,68 @@ export function SuperAdminUsersTable() {
   const colSpan = canManage ? 6 : 5
 
   return (
-    <Table className="w-full">
-      <TableHeader>
-        <TableRow>
-          <TableHead>Email</TableHead>
-          <TableHead>Name</TableHead>
-          <TableHead>Teams</TableHead>
-          <TableHead>User ID</TableHead>
-          <TableHead>Created</TableHead>
-          {canManage && <TableHead>Actions</TableHead>}
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {users.length === 0 ? (
-          <TableEmptyState colSpan={colSpan}>No users</TableEmptyState>
-        ) : (
-          users.map((u) => (
-            <TableRow key={u.userID}>
-              <TableCell>{u.email ?? '—'}</TableCell>
-              <TableCell>{u.name ?? '—'}</TableCell>
-              <TableCell>
-                {u.teams.length > 0
-                  ? u.teams.map((t) => t.name).join(', ')
-                  : '—'}
-              </TableCell>
-              <TableCell className="font-mono text-xs">{u.userID}</TableCell>
-              <TableCell>{new Date(u.createdAt).toLocaleString()}</TableCell>
-              {canManage && (
+    <div className="flex flex-col gap-4">
+      <Table className="w-full">
+        <TableHeader>
+          <TableRow>
+            <TableHead>Email</TableHead>
+            <TableHead>Name</TableHead>
+            <TableHead>Teams</TableHead>
+            <TableHead>User ID</TableHead>
+            <TableHead>Created</TableHead>
+            {canManage && <TableHead>Actions</TableHead>}
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {users.length === 0 ? (
+            <TableEmptyState colSpan={colSpan}>No users</TableEmptyState>
+          ) : (
+            users.map((u) => (
+              <TableRow key={u.userID}>
+                <TableCell>{u.email ?? '—'}</TableCell>
+                <TableCell>{u.name ?? '—'}</TableCell>
                 <TableCell>
-                  <div className="flex justify-end gap-2">
-                    <AddUserToTeamDialog
-                      userID={u.userID}
-                      label={u.email ?? u.userID}
-                    />
-                    <RemoveUserTeamsDialog
-                      user={u}
-                      label={u.email ?? u.userID}
-                    />
-                    <DeleteUserDialog
-                      userID={u.userID}
-                      label={u.email ?? u.userID}
-                    />
-                  </div>
+                  {u.teams.length > 0
+                    ? u.teams.map((t) => t.name).join(', ')
+                    : '—'}
                 </TableCell>
-              )}
-            </TableRow>
-          ))
-        )}
-      </TableBody>
-    </Table>
+                <TableCell className="font-mono text-xs">{u.userID}</TableCell>
+                <TableCell>{new Date(u.createdAt).toLocaleString()}</TableCell>
+                {canManage && (
+                  <TableCell>
+                    <div className="flex justify-end gap-2">
+                      <AddUserToTeamDialog
+                        userID={u.userID}
+                        label={u.email ?? u.userID}
+                      />
+                      <RemoveUserTeamsDialog
+                        user={u}
+                        label={u.email ?? u.userID}
+                      />
+                      <DeleteUserDialog
+                        userID={u.userID}
+                        label={u.email ?? u.userID}
+                      />
+                    </div>
+                  </TableCell>
+                )}
+              </TableRow>
+            ))
+          )}
+        </TableBody>
+      </Table>
+      {hasNextPage && (
+        <div className="flex justify-center">
+          <Button
+            variant="secondary"
+            size="small"
+            disabled={isFetchingNextPage}
+            onClick={() => fetchNextPage()}
+          >
+            {isFetchingNextPage ? 'Loading…' : 'Load more'}
+          </Button>
+        </div>
+      )}
+    </div>
   )
 }

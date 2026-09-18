@@ -31,8 +31,8 @@ export function AddUserToTeamDialog({
   const [open, setOpen] = useState(false)
   const [teamID, setTeamID] = useState('')
 
-  const teamsQuery = useQuery(trpc.superAdmin.getTeams.queryOptions())
-  const usersQueryKey = trpc.superAdmin.getUsers.queryOptions().queryKey
+  const teamsQuery = useQuery(trpc.superAdmin.getTeams.queryOptions({}))
+  const usersQueryKey = trpc.superAdmin.getUsers.pathKey()
 
   const add = useMutation(
     trpc.superAdmin.addUserToTeam.mutationOptions({

@@ -14,6 +14,13 @@ const superAdminRepositoryProcedure = protectedProcedure.use(
   )
 )
 
+// Keyset page input for the platform-wide list views. `cursor` is required by
+// tRPC's infiniteQueryOptions (nullish for the first page).
+const pageInput = z.object({
+  cursor: z.string().nullish(),
+  limit: z.number().int().min(1).max(100).optional(),
+})
+
 export const superAdminRouter = createTRPCRouter({
   getMe: superAdminRepositoryProcedure.query(async ({ ctx }) => {
     const result = await ctx.superAdminRepository.getMe()
@@ -27,23 +34,29 @@ export const superAdminRouter = createTRPCRouter({
     return result.data
   }),
 
-  getTemplates: superAdminRepositoryProcedure.query(async ({ ctx }) => {
-    const result = await ctx.superAdminRepository.getTemplates()
-    if (!result.ok) throwTRPCErrorFromRepoError(result.error)
-    return result.data
-  }),
+  getTemplates: superAdminRepositoryProcedure
+    .input(pageInput)
+    .query(async ({ ctx, input }) => {
+      const result = await ctx.superAdminRepository.getTemplates(input)
+      if (!result.ok) throwTRPCErrorFromRepoError(result.error)
+      return result.data
+    }),
 
-  getBuilds: superAdminRepositoryProcedure.query(async ({ ctx }) => {
-    const result = await ctx.superAdminRepository.getBuilds()
-    if (!result.ok) throwTRPCErrorFromRepoError(result.error)
-    return result.data
-  }),
+  getBuilds: superAdminRepositoryProcedure
+    .input(pageInput)
+    .query(async ({ ctx, input }) => {
+      const result = await ctx.superAdminRepository.getBuilds(input)
+      if (!result.ok) throwTRPCErrorFromRepoError(result.error)
+      return result.data
+    }),
 
-  getTeams: superAdminRepositoryProcedure.query(async ({ ctx }) => {
-    const result = await ctx.superAdminRepository.getTeams()
-    if (!result.ok) throwTRPCErrorFromRepoError(result.error)
-    return result.data
-  }),
+  getTeams: superAdminRepositoryProcedure
+    .input(pageInput)
+    .query(async ({ ctx, input }) => {
+      const result = await ctx.superAdminRepository.getTeams(input)
+      if (!result.ok) throwTRPCErrorFromRepoError(result.error)
+      return result.data
+    }),
 
   updateTeamLimits: superAdminRepositoryProcedure
     .input(
@@ -89,11 +102,13 @@ export const superAdminRouter = createTRPCRouter({
       return result.data
     }),
 
-  getUsers: superAdminRepositoryProcedure.query(async ({ ctx }) => {
-    const result = await ctx.superAdminRepository.getUsers()
-    if (!result.ok) throwTRPCErrorFromRepoError(result.error)
-    return result.data
-  }),
+  getUsers: superAdminRepositoryProcedure
+    .input(pageInput)
+    .query(async ({ ctx, input }) => {
+      const result = await ctx.superAdminRepository.getUsers(input)
+      if (!result.ok) throwTRPCErrorFromRepoError(result.error)
+      return result.data
+    }),
 
   addUserToTeam: superAdminRepositoryProcedure
     .input(

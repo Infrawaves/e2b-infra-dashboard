@@ -4,7 +4,12 @@ import { SuperAdminUsersTable } from '@/features/dashboard/super-admin/users-tab
 import { HydrateClient, prefetch, trpc } from '@/trpc/server'
 
 export default function SuperAdminUsersPage() {
-  prefetch(trpc.superAdmin.getUsers.queryOptions())
+  prefetch(
+    trpc.superAdmin.getUsers.infiniteQueryOptions(
+      {},
+      { getNextPageParam: (page) => page.nextCursor ?? undefined }
+    )
+  )
 
   return (
     <HydrateClient>

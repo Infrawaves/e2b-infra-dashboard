@@ -4,7 +4,12 @@ import { SuperAdminTeamsTable } from '@/features/dashboard/super-admin/teams-tab
 import { HydrateClient, prefetch, trpc } from '@/trpc/server'
 
 export default function SuperAdminTeamsPage() {
-  prefetch(trpc.superAdmin.getTeams.queryOptions())
+  prefetch(
+    trpc.superAdmin.getTeams.infiniteQueryOptions(
+      {},
+      { getNextPageParam: (page) => page.nextCursor ?? undefined }
+    )
+  )
 
   return (
     <HydrateClient>

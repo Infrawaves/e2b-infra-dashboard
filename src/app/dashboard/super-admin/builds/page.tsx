@@ -4,7 +4,12 @@ import { SuperAdminBuildsTable } from '@/features/dashboard/super-admin/builds-t
 import { HydrateClient, prefetch, trpc } from '@/trpc/server'
 
 export default function SuperAdminBuildsPage() {
-  prefetch(trpc.superAdmin.getBuilds.queryOptions())
+  prefetch(
+    trpc.superAdmin.getBuilds.infiniteQueryOptions(
+      {},
+      { getNextPageParam: (page) => page.nextCursor ?? undefined }
+    )
+  )
 
   return (
     <HydrateClient>

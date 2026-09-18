@@ -30,7 +30,7 @@ export function DeleteUserDialog({
   const { toast } = useToast()
   const [open, setOpen] = useState(false)
 
-  const usersQueryKey = trpc.superAdmin.getUsers.queryOptions().queryKey
+  const usersQueryKey = trpc.superAdmin.getUsers.pathKey()
 
   const remove = useMutation(
     trpc.superAdmin.deleteUser.mutationOptions({

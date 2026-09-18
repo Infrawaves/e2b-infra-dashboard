@@ -27,7 +27,7 @@ export function BlockTeamDialog({ team }: { team: SuperAdminTeam }) {
   const [open, setOpen] = useState(false)
   const [reason, setReason] = useState('')
 
-  const listQueryKey = trpc.superAdmin.getTeams.queryOptions().queryKey
+  const listQueryKey = trpc.superAdmin.getTeams.pathKey()
 
   const mutate = useMutation(
     trpc.superAdmin.setTeamBlocked.mutationOptions({
