@@ -1,8 +1,10 @@
 'use client'
 
 import { useSuspenseInfiniteQuery } from '@tanstack/react-query'
+import { Suspense, useState } from 'react'
 import { useTRPC } from '@/trpc/client'
 import { Button } from '@/ui/primitives/button'
+import { DebouncedInput } from '@/ui/primitives/input'
 import {
   Table,
   TableBody,
@@ -14,11 +16,31 @@ import {
 } from '@/ui/primitives/table'
 
 export function SuperAdminTemplatesTable() {
+  const [search, setSearch] = useState('')
+
+  return (
+    <div className="flex flex-col gap-4">
+      <DebouncedInput
+        value={search}
+        onChange={(v) => setSearch(String(v))}
+        placeholder="Search by name, alias, or template ID…"
+        className="max-w-sm"
+      />
+      <Suspense
+        fallback={<div className="text-sm text-fg-tertiary">Loading…</div>}
+      >
+        <TemplatesRows search={search} />
+      </Suspense>
+    </div>
+  )
+}
+
+function TemplatesRows({ search }: { search: string }) {
   const trpc = useTRPC()
   const { data, hasNextPage, isFetchingNextPage, fetchNextPage } =
     useSuspenseInfiniteQuery(
       trpc.superAdmin.getTemplates.infiniteQueryOptions(
-        {},
+        { search: search || undefined },
         { getNextPageParam: (page) => page.nextCursor ?? undefined }
       )
     )

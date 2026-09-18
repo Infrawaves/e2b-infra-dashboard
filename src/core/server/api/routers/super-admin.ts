@@ -15,10 +15,12 @@ const superAdminRepositoryProcedure = protectedProcedure.use(
 )
 
 // Keyset page input for the platform-wide list views. `cursor` is required by
-// tRPC's infiniteQueryOptions (nullish for the first page).
+// tRPC's infiniteQueryOptions (nullish for the first page). `search` narrows
+// the list server-side; changing it resets the infinite query to page one.
 const pageInput = z.object({
   cursor: z.string().nullish(),
   limit: z.number().int().min(1).max(100).optional(),
+  search: z.string().optional(),
 })
 
 export const superAdminRouter = createTRPCRouter({
