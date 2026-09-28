@@ -314,6 +314,7 @@ export function createSuperAdminRepository(
             query: {
               limit: params?.limit ?? LIST_LIMIT,
               cursor: params?.cursor ?? undefined,
+              search: params?.search || undefined,
             },
           },
           headers: deps.authHeaders(scope.accessToken),

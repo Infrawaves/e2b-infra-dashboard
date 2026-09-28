@@ -1,8 +1,10 @@
 'use client'
 
 import { useQuery, useSuspenseInfiniteQuery } from '@tanstack/react-query'
+import { Suspense, useState } from 'react'
 import { useTRPC } from '@/trpc/client'
 import { Button } from '@/ui/primitives/button'
+import { DebouncedInput } from '@/ui/primitives/input'
 import {
   Table,
   TableBody,
@@ -17,11 +19,31 @@ import { DeleteUserDialog } from './delete-user-dialog'
 import { RemoveUserTeamsDialog } from './remove-user-teams-dialog'
 
 export function SuperAdminUsersTable() {
+  const [search, setSearch] = useState('')
+
+  return (
+    <div className="flex flex-col gap-4">
+      <DebouncedInput
+        value={search}
+        onChange={(v) => setSearch(String(v))}
+        placeholder="Search by email or name…"
+        className="max-w-sm"
+      />
+      <Suspense
+        fallback={<div className="text-sm text-fg-tertiary">Loading…</div>}
+      >
+        <UsersRows search={search} />
+      </Suspense>
+    </div>
+  )
+}
+
+function UsersRows({ search }: { search: string }) {
   const trpc = useTRPC()
   const { data, hasNextPage, isFetchingNextPage, fetchNextPage } =
     useSuspenseInfiniteQuery(
       trpc.superAdmin.getUsers.infiniteQueryOptions(
-        {},
+        { search: search || undefined },
         { getNextPageParam: (page) => page.nextCursor ?? undefined }
       )
     )

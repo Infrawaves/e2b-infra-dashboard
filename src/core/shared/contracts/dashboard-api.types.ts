@@ -1416,11 +1416,13 @@ export interface paths {
         };
         /**
          * List all users across the platform
-         * @description Returns a paginated list of every platform user with the teams they belong to. Requires a signed-in user with a platform role. Keyset cursor pagination ordered by creation time (newest first).
+         * @description Returns a paginated list of every platform user with the teams they belong to. Requires a signed-in user with a platform role. Keyset cursor pagination ordered by creation time (newest first). When search is set, matching is done against the identity provider (email/name) and a single unpaginated page of results is returned.
          */
         get: {
             parameters: {
                 query?: {
+                    /** @description Case-insensitive substring match on user email or name. */
+                    search?: components["parameters"]["users_search"];
                     /** @description Maximum number of items to return per page. */
                     limit?: components["parameters"]["builds_limit"];
                     /** @description Cursor returned by the previous list response in `created_at|build_id` format. */
@@ -2358,6 +2360,8 @@ export interface components {
         templates_search: string;
         /** @description Case-insensitive substring match on team name, slug, or email. */
         teams_search: string;
+        /** @description Case-insensitive substring match on user email or name. */
+        users_search: string;
         /** @description Case-insensitive substring match on build id, template alias, template id, or team name. */
         builds_search: string;
         /** @description Sort column and direction. */
