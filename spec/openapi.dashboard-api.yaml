@@ -187,6 +187,20 @@ components:
       description: Case-insensitive substring match on template names, aliases, and template id.
       schema:
         type: string
+    teams_search:
+      name: search
+      in: query
+      required: false
+      description: Case-insensitive substring match on team name, slug, or email.
+      schema:
+        type: string
+    builds_search:
+      name: search
+      in: query
+      required: false
+      description: Case-insensitive substring match on build id, template alias, template id, or team name.
+      schema:
+        type: string
     templates_sort:
       name: sort
       in: query
@@ -2399,6 +2413,7 @@ paths:
       security:
         - AuthProviderBearerAuth: []
       parameters:
+        - $ref: "#/components/parameters/builds_search"
         - $ref: "#/components/parameters/builds_limit"
         - $ref: "#/components/parameters/builds_cursor"
         - $ref: "#/components/parameters/build_statuses"
@@ -2426,6 +2441,7 @@ paths:
       security:
         - AuthProviderBearerAuth: []
       parameters:
+        - $ref: "#/components/parameters/teams_search"
         - $ref: "#/components/parameters/builds_limit"
         - $ref: "#/components/parameters/builds_cursor"
       responses:
