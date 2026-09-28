@@ -15,32 +15,67 @@ import {
   TableRow,
 } from '@/ui/primitives/table'
 
+type BuildStatus = 'building' | 'failed' | 'success'
+const BUILD_STATUSES: BuildStatus[] = ['building', 'failed', 'success']
+
 export function SuperAdminBuildsTable() {
   const [search, setSearch] = useState('')
+  const [statuses, setStatuses] = useState<BuildStatus[]>([])
+
+  const toggleStatus = (status: BuildStatus) => {
+    setStatuses((prev) =>
+      prev.includes(status)
+        ? prev.filter((s) => s !== status)
+        : [...prev, status]
+    )
+  }
 
   return (
     <div className="flex flex-col gap-4">
-      <DebouncedInput
-        value={search}
-        onChange={(v) => setSearch(String(v))}
-        placeholder="Search by build ID, template, or team…"
-        className="max-w-sm"
-      />
+      <div className="flex flex-wrap items-center gap-3">
+        <DebouncedInput
+          value={search}
+          onChange={(v) => setSearch(String(v))}
+          placeholder="Search by build ID, template, or team…"
+          className="max-w-sm"
+        />
+        <div className="flex gap-2">
+          {BUILD_STATUSES.map((status) => (
+            <Button
+              key={status}
+              variant={statuses.includes(status) ? 'primary' : 'secondary'}
+              size="small"
+              onClick={() => toggleStatus(status)}
+            >
+              {status}
+            </Button>
+          ))}
+        </div>
+      </div>
       <Suspense
         fallback={<div className="text-sm text-fg-tertiary">Loading…</div>}
       >
-        <BuildsRows search={search} />
+        <BuildsRows search={search} statuses={statuses} />
       </Suspense>
     </div>
   )
 }
 
-function BuildsRows({ search }: { search: string }) {
+function BuildsRows({
+  search,
+  statuses,
+}: {
+  search: string
+  statuses: BuildStatus[]
+}) {
   const trpc = useTRPC()
   const { data, hasNextPage, isFetchingNextPage, fetchNextPage } =
     useSuspenseInfiniteQuery(
       trpc.superAdmin.getBuilds.infiniteQueryOptions(
-        { search: search || undefined },
+        {
+          search: search || undefined,
+          statuses: statuses.length ? statuses : undefined,
+        },
         { getNextPageParam: (page) => page.nextCursor ?? undefined }
       )
     )

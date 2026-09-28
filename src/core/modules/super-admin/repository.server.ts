@@ -25,7 +25,13 @@ type SuperAdminRepositoryDeps = {
 // Default page size for the platform-wide list views (keyset load-more).
 const LIST_LIMIT = 50
 
-type PageParams = { cursor?: string | null; limit?: number; search?: string }
+type BuildStatus = 'building' | 'failed' | 'success'
+type PageParams = {
+  cursor?: string | null
+  limit?: number
+  search?: string
+  statuses?: BuildStatus[]
+}
 
 export interface SuperAdminRepository {
   getMe(): Promise<RepoResult<{ platformRole: PlatformRole | null }>>
@@ -178,6 +184,7 @@ export function createSuperAdminRepository(
               limit: params?.limit ?? LIST_LIMIT,
               cursor: params?.cursor ?? undefined,
               search: params?.search || undefined,
+              statuses: params?.statuses?.length ? params.statuses : undefined,
             },
           },
           headers: deps.authHeaders(scope.accessToken),

@@ -23,6 +23,11 @@ const pageInput = z.object({
   search: z.string().optional(),
 })
 
+// Builds additionally support filtering by build status (server-side).
+const buildsPageInput = pageInput.extend({
+  statuses: z.array(z.enum(['building', 'failed', 'success'])).optional(),
+})
+
 export const superAdminRouter = createTRPCRouter({
   getMe: superAdminRepositoryProcedure.query(async ({ ctx }) => {
     const result = await ctx.superAdminRepository.getMe()
@@ -45,7 +50,7 @@ export const superAdminRouter = createTRPCRouter({
     }),
 
   getBuilds: superAdminRepositoryProcedure
-    .input(pageInput)
+    .input(buildsPageInput)
     .query(async ({ ctx, input }) => {
       const result = await ctx.superAdminRepository.getBuilds(input)
       if (!result.ok) throwTRPCErrorFromRepoError(result.error)
