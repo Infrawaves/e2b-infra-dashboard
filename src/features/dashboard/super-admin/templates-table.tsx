@@ -17,30 +17,60 @@ import {
 
 export function SuperAdminTemplatesTable() {
   const [search, setSearch] = useState('')
+  // undefined = all, true = public only, false = private only
+  const [visibility, setVisibility] = useState<boolean | undefined>(undefined)
+
+  const toggleVisibility = (value: boolean) => {
+    setVisibility((prev) => (prev === value ? undefined : value))
+  }
 
   return (
     <div className="flex flex-col gap-4">
-      <DebouncedInput
-        value={search}
-        onChange={(v) => setSearch(String(v))}
-        placeholder="Search by name, alias, or template ID…"
-        className="max-w-sm"
-      />
+      <div className="flex flex-wrap items-center gap-3">
+        <DebouncedInput
+          value={search}
+          onChange={(v) => setSearch(String(v))}
+          placeholder="Search by name, alias, or template ID…"
+          className="max-w-sm"
+        />
+        <div className="flex gap-2">
+          <Button
+            variant={visibility === true ? 'primary' : 'secondary'}
+            size="small"
+            onClick={() => toggleVisibility(true)}
+          >
+            Public
+          </Button>
+          <Button
+            variant={visibility === false ? 'primary' : 'secondary'}
+            size="small"
+            onClick={() => toggleVisibility(false)}
+          >
+            Private
+          </Button>
+        </div>
+      </div>
       <Suspense
         fallback={<div className="text-sm text-fg-tertiary">Loading…</div>}
       >
-        <TemplatesRows search={search} />
+        <TemplatesRows search={search} visibility={visibility} />
       </Suspense>
     </div>
   )
 }
 
-function TemplatesRows({ search }: { search: string }) {
+function TemplatesRows({
+  search,
+  visibility,
+}: {
+  search: string
+  visibility: boolean | undefined
+}) {
   const trpc = useTRPC()
   const { data, hasNextPage, isFetchingNextPage, fetchNextPage } =
     useSuspenseInfiniteQuery(
       trpc.superAdmin.getTemplates.infiniteQueryOptions(
-        { search: search || undefined },
+        { search: search || undefined, public: visibility },
         { getNextPageParam: (page) => page.nextCursor ?? undefined }
       )
     )

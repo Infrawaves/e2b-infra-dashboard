@@ -26,11 +26,14 @@ type SuperAdminRepositoryDeps = {
 const LIST_LIMIT = 50
 
 type BuildStatus = 'building' | 'failed' | 'success'
+type TeamStatus = 'active' | 'blocked' | 'banned'
 type PageParams = {
   cursor?: string | null
   limit?: number
   search?: string
   statuses?: BuildStatus[]
+  teamStatuses?: TeamStatus[]
+  public?: boolean
 }
 
 export interface SuperAdminRepository {
@@ -142,6 +145,7 @@ export function createSuperAdminRepository(
               limit: params?.limit ?? LIST_LIMIT,
               cursor: params?.cursor ?? undefined,
               search: params?.search || undefined,
+              public: params?.public,
             },
           },
           headers: deps.authHeaders(scope.accessToken),
@@ -225,6 +229,9 @@ export function createSuperAdminRepository(
               limit: params?.limit ?? LIST_LIMIT,
               cursor: params?.cursor ?? undefined,
               search: params?.search || undefined,
+              statuses: params?.teamStatuses?.length
+                ? params.teamStatuses
+                : undefined,
             },
           },
           headers: deps.authHeaders(scope.accessToken),

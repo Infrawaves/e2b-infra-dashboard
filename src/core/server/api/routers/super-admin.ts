@@ -28,6 +28,14 @@ const buildsPageInput = pageInput.extend({
   statuses: z.array(z.enum(['building', 'failed', 'success'])).optional(),
 })
 
+// Teams support filtering by team status; templates by visibility.
+const teamsPageInput = pageInput.extend({
+  teamStatuses: z.array(z.enum(['active', 'blocked', 'banned'])).optional(),
+})
+const templatesPageInput = pageInput.extend({
+  public: z.boolean().optional(),
+})
+
 export const superAdminRouter = createTRPCRouter({
   getMe: superAdminRepositoryProcedure.query(async ({ ctx }) => {
     const result = await ctx.superAdminRepository.getMe()
@@ -42,7 +50,7 @@ export const superAdminRouter = createTRPCRouter({
   }),
 
   getTemplates: superAdminRepositoryProcedure
-    .input(pageInput)
+    .input(templatesPageInput)
     .query(async ({ ctx, input }) => {
       const result = await ctx.superAdminRepository.getTemplates(input)
       if (!result.ok) throwTRPCErrorFromRepoError(result.error)
@@ -58,7 +66,7 @@ export const superAdminRouter = createTRPCRouter({
     }),
 
   getTeams: superAdminRepositoryProcedure
-    .input(pageInput)
+    .input(teamsPageInput)
     .query(async ({ ctx, input }) => {
       const result = await ctx.superAdminRepository.getTeams(input)
       if (!result.ok) throwTRPCErrorFromRepoError(result.error)

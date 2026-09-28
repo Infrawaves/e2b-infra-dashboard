@@ -194,6 +194,16 @@ components:
       description: Case-insensitive substring match on team name, slug, or email.
       schema:
         type: string
+    teams_statuses:
+      name: statuses
+      in: query
+      required: false
+      description: Comma-separated list of team statuses to include (active, blocked, banned).
+      schema:
+        type: array
+        items:
+          type: string
+          enum: [active, blocked, banned]
     users_search:
       name: search
       in: query
@@ -2223,6 +2233,7 @@ paths:
         - AuthProviderBearerAuth: []
       parameters:
         - $ref: "#/components/parameters/templates_search"
+        - $ref: "#/components/parameters/templates_public"
         - $ref: "#/components/parameters/templates_limit"
         - $ref: "#/components/parameters/templates_cursor"
       responses:
@@ -2450,6 +2461,7 @@ paths:
         - AuthProviderBearerAuth: []
       parameters:
         - $ref: "#/components/parameters/teams_search"
+        - $ref: "#/components/parameters/teams_statuses"
         - $ref: "#/components/parameters/builds_limit"
         - $ref: "#/components/parameters/builds_cursor"
       responses:

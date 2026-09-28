@@ -1277,6 +1277,8 @@ export interface paths {
                 query?: {
                     /** @description Case-insensitive substring match on template names, aliases, and template id. */
                     search?: components["parameters"]["templates_search"];
+                    /** @description Filter templates by visibility (true = public, false = internal). */
+                    public?: components["parameters"]["templates_public"];
                     /** @description Maximum number of items to return per page. */
                     limit?: components["parameters"]["templates_limit"];
                     /** @description Cursor returned by the previous list response in `{sort}|{value}|{templateID}` format. Rejected if its sort does not match the request. */
@@ -1663,6 +1665,8 @@ export interface paths {
                 query?: {
                     /** @description Case-insensitive substring match on team name, slug, or email. */
                     search?: components["parameters"]["teams_search"];
+                    /** @description Comma-separated list of team statuses to include (active, blocked, banned). */
+                    statuses?: components["parameters"]["teams_statuses"];
                     /** @description Maximum number of items to return per page. */
                     limit?: components["parameters"]["builds_limit"];
                     /** @description Cursor returned by the previous list response in `created_at|build_id` format. */
@@ -2360,6 +2364,8 @@ export interface components {
         templates_search: string;
         /** @description Case-insensitive substring match on team name, slug, or email. */
         teams_search: string;
+        /** @description Comma-separated list of team statuses to include (active, blocked, banned). */
+        teams_statuses: ("active" | "blocked" | "banned")[];
         /** @description Case-insensitive substring match on user email or name. */
         users_search: string;
         /** @description Case-insensitive substring match on build id, template alias, template id, or team name. */

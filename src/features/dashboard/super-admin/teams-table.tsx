@@ -17,32 +17,67 @@ import {
 import { BlockTeamDialog } from './block-team-dialog'
 import { EditTeamLimitsDialog } from './edit-team-limits-dialog'
 
+type TeamStatus = 'active' | 'blocked' | 'banned'
+const TEAM_STATUSES: TeamStatus[] = ['active', 'blocked', 'banned']
+
 export function SuperAdminTeamsTable() {
   const [search, setSearch] = useState('')
+  const [statuses, setStatuses] = useState<TeamStatus[]>([])
+
+  const toggleStatus = (status: TeamStatus) => {
+    setStatuses((prev) =>
+      prev.includes(status)
+        ? prev.filter((s) => s !== status)
+        : [...prev, status]
+    )
+  }
 
   return (
     <div className="flex flex-col gap-4">
-      <DebouncedInput
-        value={search}
-        onChange={(v) => setSearch(String(v))}
-        placeholder="Search by team name, slug, or email…"
-        className="max-w-sm"
-      />
+      <div className="flex flex-wrap items-center gap-3">
+        <DebouncedInput
+          value={search}
+          onChange={(v) => setSearch(String(v))}
+          placeholder="Search by team name, slug, or email…"
+          className="max-w-sm"
+        />
+        <div className="flex gap-2">
+          {TEAM_STATUSES.map((status) => (
+            <Button
+              key={status}
+              variant={statuses.includes(status) ? 'primary' : 'secondary'}
+              size="small"
+              onClick={() => toggleStatus(status)}
+            >
+              {status}
+            </Button>
+          ))}
+        </div>
+      </div>
       <Suspense
         fallback={<div className="text-sm text-fg-tertiary">Loading…</div>}
       >
-        <TeamsRows search={search} />
+        <TeamsRows search={search} statuses={statuses} />
       </Suspense>
     </div>
   )
 }
 
-function TeamsRows({ search }: { search: string }) {
+function TeamsRows({
+  search,
+  statuses,
+}: {
+  search: string
+  statuses: TeamStatus[]
+}) {
   const trpc = useTRPC()
   const { data, hasNextPage, isFetchingNextPage, fetchNextPage } =
     useSuspenseInfiniteQuery(
       trpc.superAdmin.getTeams.infiniteQueryOptions(
-        { search: search || undefined },
+        {
+          search: search || undefined,
+          teamStatuses: statuses.length ? statuses : undefined,
+        },
         { getNextPageParam: (page) => page.nextCursor ?? undefined }
       )
     )
