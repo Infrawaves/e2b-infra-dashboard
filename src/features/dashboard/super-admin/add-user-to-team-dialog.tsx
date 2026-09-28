@@ -17,6 +17,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/ui/primitives/dialog'
+import { DebouncedInput } from '@/ui/primitives/input'
 
 export function AddUserToTeamDialog({
   userID,
@@ -30,8 +31,14 @@ export function AddUserToTeamDialog({
   const { toast } = useToast()
   const [open, setOpen] = useState(false)
   const [teamID, setTeamID] = useState('')
+  const [teamSearch, setTeamSearch] = useState('')
 
-  const teamsQuery = useQuery(trpc.superAdmin.getTeams.queryOptions({}))
+  // Server-side search so teams beyond the first page are findable.
+  const teamsQuery = useQuery(
+    trpc.superAdmin.getTeams.queryOptions({
+      search: teamSearch || undefined,
+    })
+  )
   const usersQueryKey = trpc.superAdmin.getUsers.pathKey()
 
   const add = useMutation(
@@ -71,6 +78,11 @@ export function AddUserToTeamDialog({
             <label className="text-xs text-fg-tertiary" htmlFor="add-team">
               Team
             </label>
+            <DebouncedInput
+              value={teamSearch}
+              onChange={(v) => setTeamSearch(String(v))}
+              placeholder="Search teams by name, slug, or email…"
+            />
             <select
               id="add-team"
               value={teamID}
@@ -84,6 +96,11 @@ export function AddUserToTeamDialog({
                 </option>
               ))}
             </select>
+            {teams.length === 0 && (
+              <p className="text-xs text-fg-tertiary">
+                {teamSearch ? 'No teams match.' : 'No teams.'}
+              </p>
+            )}
           </div>
           <DialogFooter>
             <Button type="submit" disabled={!teamID || add.isPending}>
