@@ -19,7 +19,8 @@ export const PROTECTED_URLS = {
   NEW_TEAM: '/dashboard/teams/new',
   TEAMS: '/dashboard/teams',
 
-  SUPER_ADMIN: '/dashboard/super-admin/sandboxes',
+  SUPER_ADMIN: '/dashboard/super-admin/overview',
+  SUPER_ADMIN_OVERVIEW: '/dashboard/super-admin/overview',
   SUPER_ADMIN_SANDBOXES: '/dashboard/super-admin/sandboxes',
   SUPER_ADMIN_TEMPLATES: '/dashboard/super-admin/templates',
   SUPER_ADMIN_BUILDS: '/dashboard/super-admin/builds',
@@ -114,8 +115,9 @@ export const HELP_URLS = {
     'https://e2b.dev/docs/migration/access-token-deprecation',
 }
 
-export const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '')
-  || (process.env.VERCEL_ENV
+export const BASE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') ||
+  (process.env.VERCEL_ENV
     ? process.env.VERCEL_ENV === 'production'
       ? 'https://e2b.dev'
       : `https://${process.env.VERCEL_BRANCH_URL}`

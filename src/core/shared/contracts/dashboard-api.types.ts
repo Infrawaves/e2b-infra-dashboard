@@ -1147,6 +1147,48 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/super-admin/stats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get platform-wide totals
+         * @description Returns aggregate counts (teams, users, templates, builds) across the whole platform for the super-admin overview. Requires a signed-in user with a platform role.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Successfully returned platform totals. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["SuperAdminStats"];
+                    };
+                };
+                401: components["responses"]["401"];
+                403: components["responses"]["403"];
+                500: components["responses"]["500"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/super-admin/admins": {
         parameters: {
             query?: never;
@@ -2203,6 +2245,29 @@ export interface components {
              * @enum {string|null}
              */
             platformRole: "platform_admin" | "super_admin" | null;
+        };
+        /** @description Platform-wide aggregate counts for the super-admin overview. */
+        SuperAdminStats: {
+            /**
+             * Format: int64
+             * @description Total number of teams on the platform.
+             */
+            teamCount: number;
+            /**
+             * Format: int64
+             * @description Total number of users on the platform.
+             */
+            userCount: number;
+            /**
+             * Format: int64
+             * @description Total number of templates across all teams.
+             */
+            templateCount: number;
+            /**
+             * Format: int64
+             * @description Total number of builds across all teams.
+             */
+            buildCount: number;
         };
         /** @description A platform admin with the profile of the user it grants the role to. */
         PlatformAdminEntry: {

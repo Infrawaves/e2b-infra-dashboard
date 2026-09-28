@@ -2,6 +2,14 @@
 
 export type PlatformRole = 'platform_admin' | 'super_admin'
 
+// Platform-wide totals for the super-admin overview.
+export interface SuperAdminStats {
+  teamCount: number
+  userCount: number
+  templateCount: number
+  buildCount: number
+}
+
 // A platform admin with the profile of the user it grants the role to.
 export interface PlatformAdmin {
   userID: string

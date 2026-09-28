@@ -1369,6 +1369,32 @@ components:
             - super_admin
           description: The caller's platform role, or `null` when the caller has no platform role.
 
+    SuperAdminStats:
+      type: object
+      description: Platform-wide aggregate counts for the super-admin overview.
+      required:
+        - teamCount
+        - userCount
+        - templateCount
+        - buildCount
+      properties:
+        teamCount:
+          type: integer
+          format: int64
+          description: Total number of teams on the platform.
+        userCount:
+          type: integer
+          format: int64
+          description: Total number of users on the platform.
+        templateCount:
+          type: integer
+          format: int64
+          description: Total number of templates across all teams.
+        buildCount:
+          type: integer
+          format: int64
+          description: Total number of builds across all teams.
+
     PlatformAdminEntry:
       type: object
       description: A platform admin with the profile of the user it grants the role to.
@@ -2151,6 +2177,27 @@ paths:
                 $ref: "#/components/schemas/SuperAdminMe"
         "401":
           $ref: "#/components/responses/401"
+        "500":
+          $ref: "#/components/responses/500"
+
+  /super-admin/stats:
+    get:
+      summary: Get platform-wide totals
+      description: Returns aggregate counts (teams, users, templates, builds) across the whole platform for the super-admin overview. Requires a signed-in user with a platform role.
+      tags: [super-admin]
+      security:
+        - AuthProviderBearerAuth: []
+      responses:
+        "200":
+          description: Successfully returned platform totals.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuperAdminStats"
+        "401":
+          $ref: "#/components/responses/401"
+        "403":
+          $ref: "#/components/responses/403"
         "500":
           $ref: "#/components/responses/500"
 

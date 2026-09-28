@@ -6,6 +6,7 @@ import type {
   PlatformRole,
   SuperAdminBuild,
   SuperAdminSandbox,
+  SuperAdminStats,
   SuperAdminTeam,
   SuperAdminTeamLimits,
   SuperAdminTemplate,
@@ -38,6 +39,7 @@ type PageParams = {
 
 export interface SuperAdminRepository {
   getMe(): Promise<RepoResult<{ platformRole: PlatformRole | null }>>
+  getStats(): Promise<RepoResult<SuperAdminStats>>
   getSandboxes(): Promise<RepoResult<{ sandboxes: SuperAdminSandbox[] }>>
   getTemplates(
     params?: PageParams
@@ -100,6 +102,32 @@ export function createSuperAdminRepository(
       }
 
       return ok({ platformRole: data?.platformRole ?? null })
+    },
+
+    async getStats() {
+      const { data, error, response } = await deps.apiClient.GET(
+        '/super-admin/stats',
+        {
+          headers: deps.authHeaders(scope.accessToken),
+        }
+      )
+
+      if (!response.ok || error || !data) {
+        return err(
+          repoErrorFromHttp(
+            response.status,
+            error?.message ?? 'Failed to fetch platform stats',
+            error
+          )
+        )
+      }
+
+      return ok({
+        teamCount: data.teamCount,
+        userCount: data.userCount,
+        templateCount: data.templateCount,
+        buildCount: data.buildCount,
+      })
     },
 
     async getSandboxes() {
