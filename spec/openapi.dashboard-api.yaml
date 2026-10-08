@@ -191,7 +191,7 @@ components:
       name: search
       in: query
       required: false
-      description: Case-insensitive substring match on team name, slug, or email.
+      description: Case-insensitive substring match on team name or slug.
       schema:
         type: string
     teams_statuses:
