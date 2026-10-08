@@ -1,7 +1,9 @@
 'use client'
 
 import { useQuery, useSuspenseInfiniteQuery } from '@tanstack/react-query'
+import Link from 'next/link'
 import { Suspense, useState } from 'react'
+import { PROTECTED_URLS } from '@/configs/urls'
 import { useTRPC } from '@/trpc/client'
 import { Button } from '@/ui/primitives/button'
 import { DebouncedInput } from '@/ui/primitives/input'
@@ -74,7 +76,14 @@ function UsersRows({ search }: { search: string }) {
           ) : (
             users.map((u) => (
               <TableRow key={u.userID}>
-                <TableCell>{u.email ?? '—'}</TableCell>
+                <TableCell>
+                  <Link
+                    href={PROTECTED_URLS.SUPER_ADMIN_USER(u.userID)}
+                    className="hover:underline"
+                  >
+                    {u.email ?? u.userID}
+                  </Link>
+                </TableCell>
                 <TableCell>{u.name ?? '—'}</TableCell>
                 <TableCell>
                   {u.teams.length > 0

@@ -8,6 +8,7 @@ import type {
   SuperAdminSandbox,
   SuperAdminStats,
   SuperAdminTeam,
+  SuperAdminTeamDetail,
   SuperAdminTeamLimits,
   SuperAdminTemplate,
   SuperAdminUser,
@@ -54,6 +55,8 @@ export interface SuperAdminRepository {
   getTeams(
     params?: PageParams
   ): Promise<RepoResult<{ teams: SuperAdminTeam[]; nextCursor: string | null }>>
+  getTeam(teamID: string): Promise<RepoResult<{ team: SuperAdminTeamDetail }>>
+  getUser(userID: string): Promise<RepoResult<{ user: SuperAdminUser }>>
   updateTeamLimits(
     teamID: string,
     limits: SuperAdminTeamLimits
@@ -300,6 +303,108 @@ export function createSuperAdminRepository(
       }))
 
       return ok({ teams, nextCursor: data?.nextCursor ?? null })
+    },
+
+    async getTeam(teamID) {
+      const { data, error, response } = await deps.apiClient.GET(
+        '/super-admin/teams/{teamID}',
+        {
+          params: { path: { teamID } },
+          headers: deps.authHeaders(scope.accessToken),
+        }
+      )
+
+      if (!response.ok || error || !data) {
+        return err(
+          repoErrorFromHttp(
+            response.status,
+            error?.message ?? 'Failed to fetch team',
+            error
+          )
+        )
+      }
+
+      const t = data.team
+      const team: SuperAdminTeamDetail = {
+        team: {
+          id: t.id,
+          name: t.name,
+          slug: t.slug,
+          tier: t.tier,
+          email: t.email,
+          isBlocked: t.isBlocked,
+          isBanned: t.isBanned,
+          blockedReason: t.blockedReason ?? null,
+          createdAt: t.createdAt,
+          limits: {
+            maxLengthHours: t.limits.maxLengthHours,
+            concurrentSandboxes: t.limits.concurrentSandboxes,
+            concurrentTemplateBuilds: t.limits.concurrentTemplateBuilds,
+            maxVcpu: t.limits.maxVcpu,
+            maxRamMb: t.limits.maxRamMb,
+            diskMb: t.limits.diskMb,
+            eventsTtlDays: t.limits.eventsTtlDays ?? 0,
+            defaultFreeDiskSizeMb: t.limits.defaultFreeDiskSizeMb ?? 0,
+            maxDiskSizeMb: t.limits.maxDiskSizeMb ?? 0,
+          },
+        },
+        members: (data.members ?? []).map((m) => ({
+          userID: m.userID,
+          email: m.email ?? null,
+          name: m.name ?? null,
+          isDefault: m.isDefault,
+          addedBy: m.addedBy ?? null,
+          createdAt: m.createdAt ?? null,
+        })),
+        templates: (data.templates ?? []).map((tpl) => ({
+          templateID: tpl.templateID,
+          teamID: tpl.teamID,
+          teamName: tpl.teamName,
+          aliases: tpl.aliases,
+          cpuCount: tpl.cpuCount,
+          memoryMB: tpl.memoryMB,
+          public: tpl.public,
+          createdAt: tpl.createdAt,
+          updatedAt: tpl.updatedAt,
+          spawnCount: tpl.spawnCount,
+          buildCount: tpl.buildCount,
+        })),
+      }
+
+      return ok({ team })
+    },
+
+    async getUser(userID) {
+      const { data, error, response } = await deps.apiClient.GET(
+        '/super-admin/users/{userID}',
+        {
+          params: { path: { userID } },
+          headers: deps.authHeaders(scope.accessToken),
+        }
+      )
+
+      if (!response.ok || error || !data) {
+        return err(
+          repoErrorFromHttp(
+            response.status,
+            error?.message ?? 'Failed to fetch user',
+            error
+          )
+        )
+      }
+
+      const user: SuperAdminUser = {
+        userID: data.userID,
+        email: data.email ?? null,
+        name: data.name ?? null,
+        teams: (data.teams ?? []).map((t) => ({
+          teamID: t.teamID,
+          name: t.name,
+        })),
+        createdAt: data.createdAt,
+      }
+
+      return ok({ user })
     },
 
     async updateTeamLimits(teamID, limits) {

@@ -101,3 +101,20 @@ export interface SuperAdminTeam {
   createdAt: string
   limits: SuperAdminTeamLimits
 }
+
+// A member of a team in the team detail view.
+export interface SuperAdminTeamMember {
+  userID: string
+  email: string | null
+  name: string | null
+  isDefault: boolean
+  addedBy: string | null
+  createdAt: string | null
+}
+
+// A team with its members and templates, for the team detail page.
+export interface SuperAdminTeamDetail {
+  team: SuperAdminTeam
+  members: SuperAdminTeamMember[]
+  templates: SuperAdminTemplate[]
+}

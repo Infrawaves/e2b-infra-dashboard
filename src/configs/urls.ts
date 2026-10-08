@@ -25,7 +25,11 @@ export const PROTECTED_URLS = {
   SUPER_ADMIN_TEMPLATES: '/dashboard/super-admin/templates',
   SUPER_ADMIN_BUILDS: '/dashboard/super-admin/builds',
   SUPER_ADMIN_TEAMS: '/dashboard/super-admin/teams',
+  SUPER_ADMIN_TEAM: (teamID: string) =>
+    `/dashboard/super-admin/teams/${teamID}`,
   SUPER_ADMIN_USERS: '/dashboard/super-admin/users',
+  SUPER_ADMIN_USER: (userID: string) =>
+    `/dashboard/super-admin/users/${userID}`,
   SUPER_ADMIN_ADMINS: '/dashboard/super-admin/admins',
 
   RESOLVED_ACCOUNT_SETTINGS: (teamSlug: string) =>

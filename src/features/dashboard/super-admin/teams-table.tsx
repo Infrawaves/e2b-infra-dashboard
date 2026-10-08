@@ -1,7 +1,9 @@
 'use client'
 
 import { useQuery, useSuspenseInfiniteQuery } from '@tanstack/react-query'
+import Link from 'next/link'
 import { Suspense, useState } from 'react'
+import { PROTECTED_URLS } from '@/configs/urls'
 import { useTRPC } from '@/trpc/client'
 import { Button } from '@/ui/primitives/button'
 import { DebouncedInput } from '@/ui/primitives/input'
@@ -111,7 +113,14 @@ function TeamsRows({
           ) : (
             teams.map((t) => (
               <TableRow key={t.id}>
-                <TableCell>{t.name}</TableCell>
+                <TableCell>
+                  <Link
+                    href={PROTECTED_URLS.SUPER_ADMIN_TEAM(t.id)}
+                    className="hover:underline"
+                  >
+                    {t.name}
+                  </Link>
+                </TableCell>
                 <TableCell className="font-mono text-xs">{t.slug}</TableCell>
                 <TableCell>{t.tier}</TableCell>
                 <TableCell>{t.email}</TableCell>

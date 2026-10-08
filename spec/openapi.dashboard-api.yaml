@@ -1340,6 +1340,57 @@ components:
           type: string
           format: date-time
 
+    SuperAdminTeamDetail:
+      type: object
+      description: A single team with its limits, members, and templates for the super-admin detail view.
+      required:
+        - team
+        - members
+        - templates
+      properties:
+        team:
+          $ref: "#/components/schemas/SuperAdminTeam"
+        members:
+          type: array
+          description: The users that belong to this team.
+          items:
+            $ref: "#/components/schemas/SuperAdminTeamMember"
+        templates:
+          type: array
+          description: The templates owned by this team.
+          items:
+            $ref: "#/components/schemas/SuperAdminTemplate"
+
+    SuperAdminTeamMember:
+      type: object
+      description: A member of a team in the super-admin team detail view.
+      required:
+        - userID
+        - isDefault
+      properties:
+        userID:
+          type: string
+          format: uuid
+        email:
+          type: string
+          nullable: true
+          description: Email of the member, or `null` when the profile could not be resolved.
+        name:
+          type: string
+          nullable: true
+        isDefault:
+          type: boolean
+          description: Whether this is the team's default member.
+        addedBy:
+          type: string
+          format: uuid
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: When the user joined the team.
+
     SuperAdminTeamsResponse:
       type: object
       required:
@@ -2299,6 +2350,31 @@ paths:
         "500":
           $ref: "#/components/responses/500"
 
+  /super-admin/teams/{teamID}:
+    get:
+      summary: Get a team's detail
+      description: Returns a single team with its limits, members, and templates. Requires a signed-in user with a platform role.
+      tags: [super-admin]
+      security:
+        - AuthProviderBearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/teamID"
+      responses:
+        "200":
+          description: Successfully returned the team.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuperAdminTeamDetail"
+        "401":
+          $ref: "#/components/responses/401"
+        "403":
+          $ref: "#/components/responses/403"
+        "404":
+          $ref: "#/components/responses/404"
+        "500":
+          $ref: "#/components/responses/500"
+
   /super-admin/teams/{teamID}/limits:
     put:
       summary: Update a team's resource limits
@@ -2381,6 +2457,34 @@ paths:
           $ref: "#/components/responses/500"
 
   /super-admin/users/{userID}:
+    get:
+      summary: Get a user's detail
+      description: Returns a single platform user with the teams they belong to. Requires a signed-in user with a platform role.
+      tags: [super-admin]
+      security:
+        - AuthProviderBearerAuth: []
+      parameters:
+        - name: userID
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Successfully returned the user.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuperAdminUser"
+        "401":
+          $ref: "#/components/responses/401"
+        "403":
+          $ref: "#/components/responses/403"
+        "404":
+          $ref: "#/components/responses/404"
+        "500":
+          $ref: "#/components/responses/500"
     delete:
       summary: Delete a user
       description: Permanently deletes the user's platform records and identity-provider identity. Requires a signed-in super admin.

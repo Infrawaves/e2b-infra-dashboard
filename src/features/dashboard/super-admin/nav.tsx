@@ -30,7 +30,8 @@ export function SuperAdminNav() {
   return (
     <nav className="flex items-center gap-1 border-b border-stroke px-4">
       {tabs.map((tab) => {
-        const active = pathname === tab.href
+        const active =
+          pathname === tab.href || pathname.startsWith(`${tab.href}/`)
         return (
           <Link
             key={tab.href}
