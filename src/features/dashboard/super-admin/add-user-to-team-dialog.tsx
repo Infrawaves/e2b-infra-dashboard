@@ -106,6 +106,7 @@ export function AddUserToTeamDialog({
                     <span className="text-fg">{t.name}</span>
                     <span className="font-mono text-xs text-fg-tertiary">
                       {t.slug}
+                      {t.email ? ` · ${t.email}` : ''}
                     </span>
                   </button>
                 ))
