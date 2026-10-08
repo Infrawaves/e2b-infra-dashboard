@@ -7,6 +7,7 @@ import {
   defaultSuccessToast,
   useToast,
 } from '@/lib/hooks/use-toast'
+import { cn } from '@/lib/utils'
 import { useTRPC } from '@/trpc/client'
 import { Button } from '@/ui/primitives/button'
 import {
@@ -47,6 +48,7 @@ export function AddUserToTeamDialog({
         toast(defaultSuccessToast('User added to team.'))
         setOpen(false)
         setTeamID('')
+        setTeamSearch('')
         void queryClient.invalidateQueries({ queryKey: usersQueryKey })
       },
       onError: (e) =>
@@ -75,32 +77,40 @@ export function AddUserToTeamDialog({
           }}
         >
           <div className="flex flex-col gap-1">
-            <label className="text-xs text-fg-tertiary" htmlFor="add-team">
-              Team
-            </label>
+            <span className="text-xs text-fg-tertiary">Team</span>
             <DebouncedInput
               value={teamSearch}
               onChange={(v) => setTeamSearch(String(v))}
               placeholder="Search teams by name, slug, or email…"
             />
-            <select
-              id="add-team"
-              value={teamID}
-              onChange={(e) => setTeamID(e.target.value)}
-              className="h-9 rounded-md border border-stroke bg-bg px-2 text-sm"
-            >
-              <option value="">Select a team…</option>
-              {teams.map((t) => (
-                <option key={t.id} value={t.id}>
-                  {t.name} ({t.slug})
-                </option>
-              ))}
-            </select>
-            {teams.length === 0 && (
-              <p className="text-xs text-fg-tertiary">
-                {teamSearch ? 'No teams match.' : 'No teams.'}
-              </p>
-            )}
+            <div className="max-h-64 overflow-auto rounded-md border border-stroke">
+              {teams.length === 0 ? (
+                <p className="px-3 py-2 text-sm text-fg-tertiary">
+                  {teamsQuery.isFetching
+                    ? 'Searching…'
+                    : teamSearch
+                      ? 'No teams match.'
+                      : 'No teams.'}
+                </p>
+              ) : (
+                teams.map((t) => (
+                  <button
+                    key={t.id}
+                    type="button"
+                    onClick={() => setTeamID(t.id)}
+                    className={cn(
+                      'flex w-full flex-col items-start px-3 py-2 text-left text-sm hover:bg-bg-hover',
+                      teamID === t.id && 'bg-bg-hover'
+                    )}
+                  >
+                    <span className="text-fg">{t.name}</span>
+                    <span className="font-mono text-xs text-fg-tertiary">
+                      {t.slug}
+                    </span>
+                  </button>
+                ))
+              )}
+            </div>
           </div>
           <DialogFooter>
             <Button type="submit" disabled={!teamID || add.isPending}>
