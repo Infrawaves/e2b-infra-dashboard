@@ -19,7 +19,7 @@ const BASE_COOKIE_OPTIONS: Partial<ResponseCookie> = {
   path: '/',
   maxAge: COOKIE_MAX_AGE_SECONDS,
   sameSite: 'lax',
-  secure: process.env.NODE_ENV === 'production',
+  secure: process.env.FORCE_SECURE_COOKIE === 'true',
 }
 
 /**

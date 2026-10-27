@@ -81,7 +81,7 @@ export function oryFlowCookieOptions(): OryFlowCookieOptions {
     // Lax so the cookie rides along on the top-level redirect back from Hydra.
     sameSite: 'lax',
     path: '/',
-    secure: process.env.NODE_ENV === 'production',
+    secure: process.env.FORCE_SECURE_COOKIE === 'true',
     maxAge: FLOW_COOKIE_MAX_AGE_SECONDS,
   }
 }
