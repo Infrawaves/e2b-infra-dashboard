@@ -1,5 +1,4 @@
 import {
-  AccountSettingsIcon,
   CardIcon,
   GaugeIcon,
   type Icon,
@@ -107,12 +106,6 @@ export const SIDEBAR_MAIN_LINKS: SidebarNavItem[] = [
     : []),
 ]
 
-export const SIDEBAR_EXTRA_LINKS: SidebarNavItem[] = [
-  {
-    label: 'Account Settings',
-    href: () => PROTECTED_URLS.ACCOUNT_SETTINGS,
-    icon: AccountSettingsIcon,
-  },
-]
+export const SIDEBAR_EXTRA_LINKS: SidebarNavItem[] = []
 
 export const SIDEBAR_ALL_LINKS = [...SIDEBAR_MAIN_LINKS, ...SIDEBAR_EXTRA_LINKS]

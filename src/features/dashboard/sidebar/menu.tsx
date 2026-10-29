@@ -1,10 +1,8 @@
 'use client'
 
 import { Portal } from '@radix-ui/react-portal'
-import Link from 'next/link'
 import { usePostHog } from 'posthog-js/react'
 import { useState } from 'react'
-import { PROTECTED_URLS } from '@/configs/urls'
 import { getTeamDisplayName } from '@/core/modules/teams/utils'
 import { resetOryPostHogIdentity } from '@/features/ory-posthog-identity-bridge'
 import { useAppPostHogProvider } from '@/features/posthog-provider'
@@ -18,7 +16,6 @@ import {
   DropdownMenuTrigger,
 } from '@/ui/primitives/dropdown-menu'
 import {
-  AccountSettingsIcon,
   AddIcon,
   LogOutIcon,
   UnpackIcon,
@@ -95,15 +92,6 @@ export default function DashboardSidebarMenu() {
             <DropdownMenuSeparator className="-mx-2" />
 
             <DropdownMenuGroup className="gap-0 pt-0 pb-0">
-              <DropdownMenuItem
-                className="h-9 gap-2.5 [&_svg]:size-5 font-sans prose-body-highlight"
-                asChild
-              >
-                <Link href={PROTECTED_URLS.ACCOUNT_SETTINGS}>
-                  <AccountSettingsIcon className="ml-0.5" /> Account settings
-                </Link>
-              </DropdownMenuItem>
-
               <DropdownMenuItem
                 variant="error"
                 className="h-9 gap-2.5 [&_svg]:size-5 font-sans prose-body-highlight"
