@@ -10,10 +10,11 @@ import { useTRPC } from '@/trpc/client'
 const TABS = [
   { label: 'Overview', href: PROTECTED_URLS.SUPER_ADMIN_OVERVIEW },
   { label: 'Sandboxes', href: PROTECTED_URLS.SUPER_ADMIN_SANDBOXES },
+  { label: 'Snapshots', href: PROTECTED_URLS.SUPER_ADMIN_SNAPSHOTS },
   { label: 'Templates', href: PROTECTED_URLS.SUPER_ADMIN_TEMPLATES },
   { label: 'Builds', href: PROTECTED_URLS.SUPER_ADMIN_BUILDS },
   { label: 'Teams', href: PROTECTED_URLS.SUPER_ADMIN_TEAMS },
-  { label: 'Users', href: PROTECTED_URLS.SUPER_ADMIN_USERS },
+  { label: 'Groups', href: PROTECTED_URLS.SUPER_ADMIN_USERS },
 ]
 
 export function SuperAdminNav() {

@@ -72,7 +72,7 @@ function UsersRows({ search }: { search: string }) {
         </TableHeader>
         <TableBody>
           {users.length === 0 ? (
-            <TableEmptyState colSpan={colSpan}>No users</TableEmptyState>
+            <TableEmptyState colSpan={colSpan}>No groups</TableEmptyState>
           ) : (
             users.map((u) => (
               <TableRow key={u.userID}>

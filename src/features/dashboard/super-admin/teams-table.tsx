@@ -17,6 +17,7 @@ import {
   TableRow,
 } from '@/ui/primitives/table'
 import { BlockTeamDialog } from './block-team-dialog'
+import { DeleteTeamDialog } from './delete-team-dialog'
 import { EditTeamLimitsDialog } from './edit-team-limits-dialog'
 
 type TeamStatus = 'active' | 'blocked' | 'banned'
@@ -134,7 +135,10 @@ function TeamsRows({
                 </TableCell>
                 {canEdit && (
                   <TableCell>
-                    <BlockTeamDialog team={t} />
+                    <div className="flex gap-2">
+                      <BlockTeamDialog team={t} />
+                      <DeleteTeamDialog teamID={t.id} label={t.name} />
+                    </div>
                   </TableCell>
                 )}
               </TableRow>

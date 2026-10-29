@@ -33,6 +33,28 @@ export interface SuperAdminSandbox {
   state: string
 }
 
+// A currently-paused sandbox (snapshot) with team attribution and resources.
+export interface SuperAdminSnapshot {
+  snapshotID: string
+  sandboxID: string
+  envID: string
+  baseTemplateID: string
+  baseTemplateAlias: string | null
+  teamID: string
+  teamName: string
+  sandboxStartedAt: string
+  pausedAt: string
+  autoPause: boolean
+  originNodeID: string | null
+  envSecure: boolean
+  allowInternetAccess: boolean | null
+  cpuCount: number
+  memoryMB: number
+  diskSizeMB: number | null
+  envdVersion: string | null
+  metadata: Record<string, string> | null
+}
+
 // A template with the team that owns it.
 export interface SuperAdminTemplate {
   templateID: string

@@ -34,6 +34,13 @@ const teamsPageInput = pageInput.extend({
 })
 const templatesPageInput = pageInput.extend({
   public: z.boolean().optional(),
+  teamId: z.string().uuid().optional(),
+  sort: z.enum(['created_at_asc', 'created_at_desc']).optional(),
+})
+
+// Snapshots support an optional team filter.
+const snapshotsPageInput = pageInput.extend({
+  teamId: z.string().uuid().optional(),
 })
 
 export const superAdminRouter = createTRPCRouter({
@@ -54,6 +61,14 @@ export const superAdminRouter = createTRPCRouter({
     if (!result.ok) throwTRPCErrorFromRepoError(result.error)
     return result.data
   }),
+
+  getSnapshots: superAdminRepositoryProcedure
+    .input(snapshotsPageInput)
+    .query(async ({ ctx, input }) => {
+      const result = await ctx.superAdminRepository.getSnapshots(input)
+      if (!result.ok) throwTRPCErrorFromRepoError(result.error)
+      return result.data
+    }),
 
   getTemplates: superAdminRepositoryProcedure
     .input(templatesPageInput)
@@ -83,6 +98,14 @@ export const superAdminRouter = createTRPCRouter({
     .input(z.object({ teamID: z.string().uuid() }))
     .query(async ({ ctx, input }) => {
       const result = await ctx.superAdminRepository.getTeam(input.teamID)
+      if (!result.ok) throwTRPCErrorFromRepoError(result.error)
+      return result.data
+    }),
+
+  deleteTeam: superAdminRepositoryProcedure
+    .input(z.object({ teamID: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      const result = await ctx.superAdminRepository.deleteTeam(input.teamID)
       if (!result.ok) throwTRPCErrorFromRepoError(result.error)
       return result.data
     }),
@@ -197,14 +220,10 @@ export const superAdminRouter = createTRPCRouter({
     .input(
       z.object({
         email: z.string().email(),
-        role: z.enum(['platform_admin', 'super_admin']),
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const result = await ctx.superAdminRepository.grantAdmin(
-        input.email,
-        input.role
-      )
+      const result = await ctx.superAdminRepository.grantAdmin(input.email)
       if (!result.ok) throwTRPCErrorFromRepoError(result.error)
       return result.data
     }),

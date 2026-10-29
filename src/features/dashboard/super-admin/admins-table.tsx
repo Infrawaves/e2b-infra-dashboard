@@ -2,7 +2,6 @@
 
 import { useMutation, useQueryClient, useSuspenseQuery } from '@tanstack/react-query'
 import { useState } from 'react'
-import type { PlatformRole } from '@/core/modules/super-admin/models'
 import { defaultErrorToast, defaultSuccessToast, useToast } from '@/lib/hooks/use-toast'
 import { useTRPC } from '@/trpc/client'
 import { Button } from '@/ui/primitives/button'
@@ -22,7 +21,6 @@ export function SuperAdminAdminsTable() {
   const queryClient = useQueryClient()
   const { toast } = useToast()
   const [email, setEmail] = useState('')
-  const [role, setRole] = useState<PlatformRole>('platform_admin')
 
   const listQueryKey = trpc.superAdmin.getAdmins.queryOptions().queryKey
   const { data } = useSuspenseQuery(trpc.superAdmin.getAdmins.queryOptions())
@@ -60,7 +58,7 @@ export function SuperAdminAdminsTable() {
         className="flex flex-wrap items-end gap-3"
         onSubmit={(e) => {
           e.preventDefault()
-          if (canGrant) grant.mutate({ email: email.trim(), role })
+          if (canGrant) grant.mutate({ email: email.trim() })
         }}
       >
         <div className="flex flex-col gap-1">
@@ -76,22 +74,8 @@ export function SuperAdminAdminsTable() {
             className="h-9 w-[280px] border-stroke"
           />
         </div>
-        <div className="flex flex-col gap-1">
-          <label className="text-xs text-fg-tertiary" htmlFor="grant-role">
-            Role
-          </label>
-          <select
-            id="grant-role"
-            value={role}
-            onChange={(e) => setRole(e.target.value as PlatformRole)}
-            className="h-9 rounded-md border border-stroke bg-bg px-2 text-sm"
-          >
-            <option value="platform_admin">platform_admin</option>
-            <option value="super_admin">super_admin</option>
-          </select>
-        </div>
         <Button type="submit" disabled={!canGrant}>
-          Grant
+          Grant super admin
         </Button>
       </form>
 

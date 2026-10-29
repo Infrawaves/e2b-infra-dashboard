@@ -22,6 +22,7 @@ export const PROTECTED_URLS = {
   SUPER_ADMIN: '/dashboard/super-admin/overview',
   SUPER_ADMIN_OVERVIEW: '/dashboard/super-admin/overview',
   SUPER_ADMIN_SANDBOXES: '/dashboard/super-admin/sandboxes',
+  SUPER_ADMIN_SNAPSHOTS: '/dashboard/super-admin/snapshots',
   SUPER_ADMIN_TEMPLATES: '/dashboard/super-admin/templates',
   SUPER_ADMIN_BUILDS: '/dashboard/super-admin/builds',
   SUPER_ADMIN_TEAMS: '/dashboard/super-admin/teams',

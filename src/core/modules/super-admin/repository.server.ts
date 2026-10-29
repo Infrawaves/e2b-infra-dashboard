@@ -6,6 +6,7 @@ import type {
   PlatformRole,
   SuperAdminBuild,
   SuperAdminSandbox,
+  SuperAdminSnapshot,
   SuperAdminStats,
   SuperAdminTeam,
   SuperAdminTeamDetail,
@@ -29,6 +30,7 @@ const LIST_LIMIT = 50
 
 type BuildStatus = 'building' | 'failed' | 'success'
 type TeamStatus = 'active' | 'blocked' | 'banned'
+type TemplatesSort = 'created_at_asc' | 'created_at_desc'
 type PageParams = {
   cursor?: string | null
   limit?: number
@@ -36,12 +38,19 @@ type PageParams = {
   statuses?: BuildStatus[]
   teamStatuses?: TeamStatus[]
   public?: boolean
+  teamId?: string
+  sort?: TemplatesSort
 }
 
 export interface SuperAdminRepository {
   getMe(): Promise<RepoResult<{ platformRole: PlatformRole | null }>>
   getStats(): Promise<RepoResult<SuperAdminStats>>
   getSandboxes(): Promise<RepoResult<{ sandboxes: SuperAdminSandbox[] }>>
+  getSnapshots(
+    params?: PageParams
+  ): Promise<
+    RepoResult<{ snapshots: SuperAdminSnapshot[]; nextCursor: string | null }>
+  >
   getTemplates(
     params?: PageParams
   ): Promise<
@@ -56,6 +65,7 @@ export interface SuperAdminRepository {
     params?: PageParams
   ): Promise<RepoResult<{ teams: SuperAdminTeam[]; nextCursor: string | null }>>
   getTeam(teamID: string): Promise<RepoResult<{ team: SuperAdminTeamDetail }>>
+  deleteTeam(teamID: string): Promise<RepoResult<null>>
   getUser(userID: string): Promise<RepoResult<{ user: SuperAdminUser }>>
   updateTeamLimits(
     teamID: string,
@@ -73,7 +83,7 @@ export interface SuperAdminRepository {
   removeUserFromTeam(userID: string, teamID: string): Promise<RepoResult<null>>
   deleteUser(userID: string): Promise<RepoResult<null>>
   getAdmins(): Promise<RepoResult<{ admins: PlatformAdmin[] }>>
-  grantAdmin(email: string, role: PlatformRole): Promise<RepoResult<null>>
+  grantAdmin(email: string): Promise<RepoResult<null>>
   revokeAdmin(userID: string): Promise<RepoResult<null>>
 }
 
@@ -167,6 +177,56 @@ export function createSuperAdminRepository(
       return ok({ sandboxes })
     },
 
+    async getSnapshots(params) {
+      const { data, error, response } = await deps.apiClient.GET(
+        '/super-admin/snapshots',
+        {
+          params: {
+            query: {
+              limit: params?.limit ?? LIST_LIMIT,
+              cursor: params?.cursor ?? undefined,
+              search: params?.search || undefined,
+              team_id: params?.teamId || undefined,
+            },
+          },
+          headers: deps.authHeaders(scope.accessToken),
+        }
+      )
+
+      if (!response.ok || error) {
+        return err(
+          repoErrorFromHttp(
+            response.status,
+            error?.message ?? 'Failed to fetch snapshots',
+            error
+          )
+        )
+      }
+
+      const snapshots: SuperAdminSnapshot[] = (data?.data ?? []).map((s) => ({
+        snapshotID: s.snapshotID,
+        sandboxID: s.sandboxID,
+        envID: s.envID,
+        baseTemplateID: s.baseTemplateID,
+        baseTemplateAlias: s.baseTemplateAlias ?? null,
+        teamID: s.teamID,
+        teamName: s.teamName,
+        sandboxStartedAt: s.sandboxStartedAt,
+        pausedAt: s.pausedAt,
+        autoPause: s.autoPause,
+        originNodeID: s.originNodeID ?? null,
+        envSecure: s.envSecure,
+        allowInternetAccess: s.allowInternetAccess ?? null,
+        cpuCount: s.cpuCount,
+        memoryMB: s.memoryMB,
+        diskSizeMB: s.diskSizeMB ?? null,
+        envdVersion: s.envdVersion ?? null,
+        metadata: s.metadata ?? null,
+      }))
+
+      return ok({ snapshots, nextCursor: data?.nextCursor ?? null })
+    },
+
     async getTemplates(params) {
       const { data, error, response } = await deps.apiClient.GET(
         '/super-admin/templates',
@@ -177,6 +237,8 @@ export function createSuperAdminRepository(
               cursor: params?.cursor ?? undefined,
               search: params?.search || undefined,
               public: params?.public,
+              team_id: params?.teamId || undefined,
+              sort: params?.sort || undefined,
             },
           },
           headers: deps.authHeaders(scope.accessToken),
@@ -372,6 +434,28 @@ export function createSuperAdminRepository(
       }
 
       return ok({ team })
+    },
+
+    async deleteTeam(teamID) {
+      const { error, response } = await deps.apiClient.DELETE(
+        '/super-admin/teams/{teamID}',
+        {
+          params: { path: { teamID } },
+          headers: deps.authHeaders(scope.accessToken),
+        }
+      )
+
+      if (!response.ok || error) {
+        return err(
+          repoErrorFromHttp(
+            response.status,
+            error?.message ?? 'Failed to delete team',
+            error
+          )
+        )
+      }
+
+      return ok(null)
     },
 
     async getUser(userID) {
@@ -585,12 +669,12 @@ export function createSuperAdminRepository(
       return ok({ admins })
     },
 
-    async grantAdmin(email, role) {
+    async grantAdmin(email) {
       const { error, response } = await deps.apiClient.POST(
         '/super-admin/admins',
         {
           headers: deps.authHeaders(scope.accessToken),
-          body: { email, role },
+          body: { email },
         }
       )
 

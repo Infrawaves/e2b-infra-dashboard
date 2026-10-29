@@ -1321,6 +1321,10 @@ export interface paths {
                     search?: components["parameters"]["templates_search"];
                     /** @description Filter templates by visibility (true = public, false = internal). */
                     public?: components["parameters"]["templates_public"];
+                    /** @description Filter templates to a single owning team. */
+                    team_id?: components["parameters"]["templates_team"];
+                    /** @description Sort column and direction. */
+                    sort?: components["parameters"]["templates_sort"];
                     /** @description Maximum number of items to return per page. */
                     limit?: components["parameters"]["templates_limit"];
                     /** @description Cursor returned by the previous list response in `{sort}|{value}|{templateID}` format. Rejected if its sort does not match the request. */
@@ -1395,7 +1399,43 @@ export interface paths {
         };
         put?: never;
         post?: never;
-        delete?: never;
+        /**
+         * Delete a team
+         * @description Deletes a team only if it owns no blocking resources (envs, snapshots, volumes). Teams with any such resources return 409 and are left untouched. Requires a signed-in super-admin.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Identifier of the team. */
+                    teamID: components["parameters"]["teamID"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Team deleted. */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                401: components["responses"]["401"];
+                403: components["responses"]["403"];
+                /** @description Team still owns resources and cannot be deleted. */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                500: components["responses"]["500"];
+            };
+        };
         options?: never;
         head?: never;
         patch?: never;
@@ -1750,6 +1790,58 @@ export interface paths {
                     };
                     content: {
                         "application/json": components["schemas"]["SuperAdminBuildsResponse"];
+                    };
+                };
+                400: components["responses"]["400"];
+                401: components["responses"]["401"];
+                403: components["responses"]["403"];
+                500: components["responses"]["500"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/super-admin/snapshots": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List all paused sandboxes (snapshots) across teams
+         * @description Returns a paginated list of currently-paused sandboxes across all teams, each with its owning team, base template, pause time, and resource config. Requires a signed-in user with a platform role. Keyset cursor pagination ordered by pause time (newest first).
+         */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description Case-insensitive substring match on sandbox id, base template id/alias, or team name. */
+                    search?: components["parameters"]["snapshots_search"];
+                    /** @description Filter snapshots to a single owning team. */
+                    team_id?: components["parameters"]["snapshots_team"];
+                    /** @description Maximum number of items to return per page. */
+                    limit?: components["parameters"]["snapshots_limit"];
+                    /** @description Cursor returned by the previous list response in `created_at|snapshot_id` format. */
+                    cursor?: components["parameters"]["snapshots_cursor"];
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Successfully returned paginated snapshots. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["SuperAdminSnapshotsResponse"];
                     };
                 };
                 400: components["responses"]["400"];
@@ -2292,6 +2384,56 @@ export interface components {
             /** @description Cursor to pass to the next list request, or `null` if there is no next page. */
             nextCursor: string | null;
         };
+        /** @description A currently-paused sandbox (snapshot) with team attribution and resource config, for the cross-team super-admin view. */
+        SuperAdminSnapshot: {
+            /**
+             * Format: uuid
+             * @description The snapshot row id.
+             */
+            snapshotID: string;
+            /** @description The sandbox this snapshot was derived from. */
+            sandboxID: string;
+            /** @description The snapshot's own env id. */
+            envID: string;
+            /** @description The base template env id the sandbox was started from. */
+            baseTemplateID: string;
+            /** @description Human-readable alias of the base template, if any. */
+            baseTemplateAlias?: string;
+            /** Format: uuid */
+            teamID: string;
+            teamName: string;
+            /**
+             * Format: date-time
+             * @description When the original sandbox was started.
+             */
+            sandboxStartedAt: string;
+            /**
+             * Format: date-time
+             * @description When the sandbox was paused (snapshot row creation time).
+             */
+            pausedAt: string;
+            /** @description Whether the sandbox was auto-paused (vs explicitly paused). */
+            autoPause: boolean;
+            /** @description The node the snapshot was written on. */
+            originNodeID?: string;
+            envSecure: boolean;
+            allowInternetAccess?: boolean | null;
+            /** Format: int64 */
+            cpuCount: number;
+            /** Format: int64 */
+            memoryMB: number;
+            /** Format: int64 */
+            diskSizeMB?: number | null;
+            envdVersion?: string | null;
+            metadata?: {
+                [key: string]: string;
+            };
+        };
+        SuperAdminSnapshotsResponse: {
+            data: components["schemas"]["SuperAdminSnapshot"][];
+            /** @description Cursor to pass to the next list request, or `null` if there is no next page. */
+            nextCursor: string | null;
+        };
         /** @description A team as seen in the cross-team super-admin view, not scoped to any user's membership. */
         SuperAdminTeam: {
             /** Format: uuid */
@@ -2415,12 +2557,10 @@ export interface components {
             isBlocked: boolean;
             blockedReason?: string | null;
         };
-        /** @description Grant (or update) a platform role to the user with this email. */
+        /** @description Grant super-admin to the user with this email. */
         GrantPlatformAdminRequest: {
             /** Format: email */
             email: string;
-            /** @enum {string} */
-            role: "platform_admin" | "super_admin";
         };
     };
     responses: {
@@ -2537,6 +2677,16 @@ export interface components {
         builds_search: string;
         /** @description Sort column and direction. */
         templates_sort: "created_at_asc" | "created_at_desc" | "updated_at_asc" | "updated_at_desc";
+        /** @description Filter templates to a single owning team. */
+        templates_team: string;
+        /** @description Case-insensitive substring match on sandbox id, base template id/alias, or team name. */
+        snapshots_search: string;
+        /** @description Filter snapshots to a single owning team. */
+        snapshots_team: string;
+        /** @description Maximum number of items to return per page. */
+        snapshots_limit: number;
+        /** @description Cursor returned by the previous list response in `created_at|snapshot_id` format. */
+        snapshots_cursor: string;
         /** @description Cursor returned by the previous list response in `assigned_at|assignment_id` format. */
         tag_assignments_cursor: string;
         /** @description Maximum number of distinct tags to return per page. */

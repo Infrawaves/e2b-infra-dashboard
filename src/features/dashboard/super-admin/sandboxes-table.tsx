@@ -18,25 +18,61 @@ export function SuperAdminSandboxesTable() {
   const trpc = useTRPC()
   const { data } = useSuspenseQuery(trpc.superAdmin.getSandboxes.queryOptions())
   const [search, setSearch] = useState('')
+  const [teamFilter, setTeamFilter] = useState('')
+  const [sortDesc, setSortDesc] = useState(true)
+
+  // Team options come from the teamIDs present in the current data.
+  const teamOptions = useMemo(
+    () => Array.from(new Set(data.sandboxes.map((s) => s.teamID))).sort(),
+    [data.sandboxes]
+  )
 
   const sandboxes = useMemo(() => {
     const q = search.trim().toLowerCase()
-    if (!q) return data.sandboxes
-    return data.sandboxes.filter((s) =>
-      [s.sandboxID, s.templateID, s.alias ?? '', s.teamID, s.state].some((f) =>
-        f.toLowerCase().includes(q)
+    let rows = data.sandboxes
+    if (teamFilter) rows = rows.filter((s) => s.teamID === teamFilter)
+    if (q) {
+      rows = rows.filter((s) =>
+        [s.sandboxID, s.templateID, s.alias ?? '', s.teamID, s.state].some((f) =>
+          f.toLowerCase().includes(q)
+        )
       )
-    )
-  }, [data.sandboxes, search])
+    }
+    return [...rows].sort((a, b) => {
+      const d = new Date(a.startedAt).getTime() - new Date(b.startedAt).getTime()
+      return sortDesc ? -d : d
+    })
+  }, [data.sandboxes, search, teamFilter, sortDesc])
 
   return (
     <div className="flex flex-col gap-4">
-      <DebouncedInput
-        value={search}
-        onChange={(v) => setSearch(String(v))}
-        placeholder="Search by sandbox ID, template, team ID, or state…"
-        className="max-w-sm"
-      />
+      <div className="flex flex-wrap items-center gap-3">
+        <DebouncedInput
+          value={search}
+          onChange={(v) => setSearch(String(v))}
+          placeholder="Search by sandbox ID, template, team ID, or state…"
+          className="max-w-sm"
+        />
+        <select
+          value={teamFilter}
+          onChange={(e) => setTeamFilter(e.target.value)}
+          className="h-9 rounded-md border border-stroke bg-bg px-2 text-sm"
+        >
+          <option value="">All teams</option>
+          {teamOptions.map((id) => (
+            <option key={id} value={id}>
+              {id}
+            </option>
+          ))}
+        </select>
+        <button
+          type="button"
+          onClick={() => setSortDesc((v) => !v)}
+          className="h-9 rounded-md border border-stroke bg-bg px-3 text-sm hover:text-fg"
+        >
+          Started {sortDesc ? '↓ newest' : '↑ oldest'}
+        </button>
+      </div>
       <Table className="w-full">
         <TableHeader>
           <TableRow>
